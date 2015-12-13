@@ -74,13 +74,9 @@ def parse(datatype, data, correctible):
 
         search_elements = [element.get_search_elements()
                            for element in elements if element.validate(data)]
-<<<<<<< HEAD
 
         if len(elements) != len(search_elements):
 
-=======
-        if len(elements) != len(search_elements):
->>>>>>> origin/master
             return False, None
         search_elements = filter(lambda x: x.get('spec') is not None,
                         search_elements)
