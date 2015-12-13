@@ -1,11 +1,7 @@
 '''
 Load randomly generated example data into the database
 '''
-<<<<<<< HEAD
 from flask import g
-=======
-from f ask import g
->>>>>>> origin/master
 from fhir.models import db, Resource, User, Client, commit_buffers
 from fhir.indexer import index_resource
 from fhir.fhir_parser import parse_resource
@@ -16,17 +12,11 @@ import random
 from functools import partial
 import json
 import os
-<<<<<<< HEAD
 import fhir.ga4gh
 from vcf import VCFReader
 
 BASEDIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'fhir')
 MAX_SEQ_PER_FILE = 10
-=======
-
-
-BASEDIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'fhir')
->>>>>>> origin/master
 
 class MockG(object):
     def __init__(self):
@@ -65,11 +55,7 @@ def save_resource(resource_type, resource_data):
     save a resource to database and index its elements by search params
     '''
     valid, search_elements = parse_resource(resource_type, resource_data)
-<<<<<<< HEAD
     #assert valid
-=======
-    assert valid
->>>>>>> origin/master
     resource = test_resource(resource_type, resource_data) 
     index_resource(resource, search_elements, g=BUF)
     return resource
@@ -90,24 +76,13 @@ def rand_patient():
             'div': "<div><p>%s</p></div>"% full_name
         },
         'name': [{'text': full_name}],
-<<<<<<< HEAD
         'gender': gender
         }
 
-=======
-        'gender': {
-                'text': gender,
-                'coding': [{
-                    'code': 'F' if gender == 'female' else 'M',
-                    'system': 'http://hl7.org/fhir/v3/AdministrativeGender'}]
-        }
-    }
->>>>>>> origin/master
     print 'Created Patient called %s'% full_name
     return save_resource('Patient', data)
 
 
-<<<<<<< HEAD
 def load_patients_by_samples(samples):
     return {sample: rand_patient() for sample in samples}
 
@@ -245,8 +220,6 @@ def make_observation():
     return save_resource('Observation', observation)
 
 
-=======
->>>>>>> origin/master
 def init_superuser():
     superuser = User(email='super')
     db.session.add(superuser)
@@ -254,7 +227,6 @@ def init_superuser():
     test_resource = partial(Resource, owner_id=superuser.email)  
 
 
-<<<<<<< HEAD
 def load_condition_from_file(path):
     print path
     abspath = os.path.join(BASEDIR, 'examples/conditions', path)
@@ -286,13 +258,10 @@ def init_practitioner():
     global available_practitioner
     available_conditions = map(load_condition_from_file, os.listdir(condition_dir))
 
-=======
->>>>>>> origin/master
 if __name__ == '__main__':
     from server import app
     with app.app_context():
         init_superuser()
-<<<<<<< HEAD
         patient_ids = []
         sequence_ids = []
 
@@ -314,8 +283,4 @@ if __name__ == '__main__':
         for _ in xrange(8):
             make_observation()
 
-=======
-        for _ in xrange(8):
-            rand_patient()
->>>>>>> origin/master
         commit_buffers(BUF) 
