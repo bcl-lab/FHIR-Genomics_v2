@@ -11,7 +11,10 @@ from functools import partial, wraps
 from datetime import datetime
 import re
 import ga4gh
+<<<<<<< HEAD
 import basespace
+=======
+>>>>>>> origin/master
 
 api = Blueprint('api', __name__)
 

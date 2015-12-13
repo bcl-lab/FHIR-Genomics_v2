@@ -21,6 +21,7 @@ def process_profile(profile):
     Process a resource profile (in FHIR's JSON format)
     as our internal structure for specs. code generation
     '''
+<<<<<<< HEAD
 
     ori_elements = profile['snapshot']['element']
 
@@ -76,6 +77,39 @@ def process_profile(profile):
             param_type = element['searchParam']['type']
             search_params[param_name] = param_type
 
+=======
+    elements = profile['structure'][0]['element']
+    search_params = {param['xpath'].replace('f:', '').replace('/', '.'): param
+                     for param in profile['structure'][0].get('searchParam', [])
+                     if 'xpath' in param}
+    # `refeence_types` maintains the mapping
+    # between a search parameter of type ResourceReference and possible resource types
+    reference_types = {}
+    for element in elements:
+        path = element['path']
+        search_param = search_params.get(path)
+        if search_param is not None:
+            # delete elements we don't care about
+            del search_param['documentation']
+            del search_param['xpath']
+            element['searchParam'] = search_param
+            # get resource type of all resource reference
+            # these will be used by a chained query where type of referenced
+            # resource might be implied
+            if 'type' not in element['definition']:
+                continue
+            types = []
+            for element_type in element['definition']['type']:
+                if element_type['code'] == 'ResourceReference':
+                    # 'profile' looks something like this [url]/[resource name]
+                    reference_type = element_type['profile'].split('/')[-1]
+                    types.append(reference_type)
+
+            reference_types[search_param['name']] = types or None
+
+    search_params = {param['name']: param['type']
+                     for param in search_params.values()}
+>>>>>>> origin/master
     return elements, search_params, reference_types
 
 
@@ -109,8 +143,25 @@ def load_spec(spec_dir):
                 reference_types[name] = resource_reference_types
 
             print 'Loaded %s\'s profile' % name
+<<<<<<< HEAD
             resources.append('name')
 
+=======
+    # manually load sequence spec
+    specs['Sequence'] = sequence_resource
+    reference_types['Sequence'] = sequence_reference_types
+    resources.append('Sequence')
+    print 'manually added Sequence resource for genomic support.'
+
+    with open('fhir/fhir_spec.py', 'w') as spec_target:
+        spec_target.write("'''\n%s\n'''" % WARNING)
+        spec_target.write('\n')
+        spec_target.write('SPECS=' + str(specs))
+        spec_target.write('\n')
+        spec_target.write('RESOURCES=set(%s)'% str(resources))
+        spec_target.write('\n')
+        spec_target.write('REFERENCE_TYPES=' + str(reference_types))
+>>>>>>> origin/master
 
 if __name__ == '__main__':
     # find out where the specs. directory is.

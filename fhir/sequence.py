@@ -12,6 +12,59 @@ sequence_resource = {
                 'type': [{'code': 'Resource'}]
             }
         }, {
+<<<<<<< HEAD
+=======
+            'path': 'Sequence.variationID',
+            'definition': {
+                'min': 0,
+                'max': '1',
+                'type': [{'code': 'CodeableConcpet'}]
+            },
+            'searchParam': {
+                'name': 'variationID',
+                'type': 'token'
+             }
+        }, {
+            'path': 'Sequence.interpretation',
+            'definition': {
+                'min': 1,
+                'max': '1',
+                'type': [{'code': 'code'}]
+            },
+            'searchParam': {
+                'name': 'interpretation',
+                'type': 'token'
+             }
+        }, {
+            'path': 'Sequence.patient',
+            'definition': {
+                'min': 1,
+                'max': '1',
+                'type': [{'code': 'Resource'}]
+            },
+            'searchParam': {
+                'name': 'patient',
+                'type': 'reference'
+             }
+        }, {
+            'path': 'Sequence.timeDetermined',
+            'definition': {
+                'min': 0,
+                'max': '1',
+                'type': [{'code': 'dateTime'}]
+            },
+            'searchParam': {
+                'name': 'time-determined',
+                'type': 'date'
+             }
+        }, {
+            'path': 'Sequence.variation',
+            'definition': {
+                'min': 0,
+                'max': '*',
+            }
+        }, {
+>>>>>>> origin/master
             'path': 'Sequence.variation.type',
             'definition': {
                 'min': 1,
@@ -21,6 +74,7 @@ sequence_resource = {
             'searchParam': {
                 'name': 'variation-type',
                 'type': 'token'
+<<<<<<< HEAD
             }
         }, {
             'path': 'Sequence.variationID',
@@ -34,10 +88,37 @@ sequence_resource = {
                 'type': 'token'
             }
         },  {
+=======
+             }
+        }, {
+            'path': 'Sequence.variation.variationHGVS',
+            'definition': {
+                'min': 0,
+                'max': '1',
+                'type': [{'code': 'CodeableConcpet'}]
+            },
+            'searchParam': {
+                'name': 'variation-variationHGVS',
+                'type': 'token'
+             }
+        }, {
+            'path': 'Sequence.variation.variationType',
+            'definition': {
+                'min': 0,
+                'max': '1',
+                'type': [{'code': 'CodeableConcpet'}]
+            },
+            'searchParam': {
+                'name': 'variation-variationType',
+                'type': 'token'
+             }
+        }, {
+>>>>>>> origin/master
             'path': 'Sequence.variation.referenceSeq',
             'definition': {
                 'min': 0,
                 'max': '1',
+<<<<<<< HEAD
                 'type': [{'code': 'CodeableConcept'}]
             }
         }, {
@@ -46,6 +127,20 @@ sequence_resource = {
                 'min': 0,
                 'max': '1',
                 'type': [{'code': 'Quantity'}]
+=======
+                'type': [{'code': 'CodeableConcpet'}]
+            },
+            'searchParam': {
+                'name': 'variation-referenceSeq',
+                'type': 'token'
+             }
+        }, {
+            'path': 'Sequence.allelicState',
+            'definition': {
+                'min': 0,
+                'max': '1',
+                'type': [{'code': 'CodeableConcpet'}]
+>>>>>>> origin/master
             }
         }, {
             'path': 'Sequence.coordinate',
@@ -58,12 +153,20 @@ sequence_resource = {
             'definition': {
                 'min': 0,
                 'max': '1',
+<<<<<<< HEAD
                 'type': [{'code': 'CodeableConcept'}]
+=======
+                'type': [{'code': 'CodeableConcpet'}]
+>>>>>>> origin/master
             },
             'searchParam': {
                 'name': 'coordinate-chromosome',
                 'type': 'token'
+<<<<<<< HEAD
             }
+=======
+             }
+>>>>>>> origin/master
         }, {
             'path': 'Sequence.coordinate.start',
             'definition': {
@@ -74,7 +177,11 @@ sequence_resource = {
             'searchParam': {
                 'name': 'coordinate-start',
                 'type': 'number'
+<<<<<<< HEAD
             }
+=======
+             }
+>>>>>>> origin/master
         }, {
             'path': 'Sequence.coordinate.end',
             'definition': {
@@ -85,12 +192,17 @@ sequence_resource = {
             'searchParam': {
                 'name': 'coordinate-end',
                 'type': 'number'
+<<<<<<< HEAD
             }
+=======
+             }
+>>>>>>> origin/master
         }, {
             'path': 'Sequence.coordinate.genomeBuild',
             'definition': {
                 'min': 0,
                 'max': '1',
+<<<<<<< HEAD
                 'type': [{'code': 'CodeableConcept'}]
             }
         }, {
@@ -188,11 +300,111 @@ sequence_resource = {
             }
         },  {
             'path': 'Sequence.repository.uri',
+=======
+                'type': [{'code': 'CodeableConcpet'}]
+            }
+        }, {
+            'path': 'Sequence.gene',
+            'definition': {
+                'min': 0,
+                'max': '1',
+                'type': [{'code': 'CodeableConcpet'}]
+            },
+            'searchParam': {
+                'name': 'gene',
+                'type': 'token'
+             }
+        },  {
+            'path': 'Sequence.region',
+            'definition': {
+                'min': 0,
+                'max': '1',
+                'type': [{'code': 'CodeableConcpet'}]
+            }
+        },  {
+            'path': 'Sequence.species',
+            'definition': {
+                'min': 0,
+                'max': '1',
+                'type': [{'code': 'CodeableConcpet'}]
+            },
+            'searchParam': {
+                'name': 'species',
+                'type': 'token'
+             }
+        },  {
+            'path': 'Sequence.source',
+            'definition': {
+                'min': 1,
+                'max': '1',
+                'type': [{'code': 'CodeableConcpet'}]
+            },
+            'searchParam': {
+                'name': 'source',
+                'type': 'token'
+             }
+        }, {
+            'path': 'Sequence.request',
+            'definition': {
+                'min': 0,
+                'max': '1',
+                'type': [{'code': 'Resource'}]
+            },
+            'searchParam': {
+                'name': 'request',
+                'type': 'reference'
+             }
+        }, {
+            'path': 'Sequence.analysis',
+            'definition': {
+                'min': 0,
+                'max': '*',
+            }
+        }, {
+            'path': 'Sequence.analysis.target',
+            'definition': {
+                'min': 1,
+                'max': '1',
+                'type': [{'code': 'CodeableConcpet'}]
+            },
+            'searchParam': {
+                'name': 'analysis-target',
+                'type': 'token'
+             }
+        }, {
+            'path': 'Sequence.analysis.type',
+            'definition': {
+                'min': 1,
+                'max': '1',
+                'type': [{'code': 'CodeableConcpet'}]
+            },
+            'searchParam': {
+                'name': 'analysis-type',
+                'type': 'token'
+             }
+        }, {
+            'path': 'Sequence.analysis.interpretation',
+            'definition': {
+                'min': 0,
+                'max': '1',
+                'type': [{'code': 'CodeableConcpet'}]
+            }
+        }, {
+            'path': 'Sequence.analysis.confidence',
+            'definition': {
+                'min': 1,
+                'max': '1',
+                'type': [{'code': 'code'}]
+            }
+        }, {
+            'path': 'Sequence.gaRepository',
+>>>>>>> origin/master
             'definition': {
                 'min': 0,
                 'max': '1',
                 'type': [{'code': 'uri'}]
             }
+<<<<<<< HEAD
         },  {
             'path': 'Sequence.repository.name',
             'definition': {
@@ -209,13 +421,28 @@ sequence_resource = {
             }
         }, {
             'path': 'Sequence.repository.variantId',
+=======
+        }, {
+            'path': 'Sequence.gaVariantSet',
+            'definition': {
+                'min': 0,
+                'max': '*',
+                'type': [{'code': 'string'}]
+            }
+        }, {
+            'path': 'Sequence.gaCallSet',
+>>>>>>> origin/master
             'definition': {
                 'min': 0,
                 'max': '1',
                 'type': [{'code': 'string'}]
             }
         }, {
+<<<<<<< HEAD
             'path': 'Sequence.repository.readGroupSetId',
+=======
+            'path': 'Sequence.ReadGroup',
+>>>>>>> origin/master
             'definition': {
                 'min': 0,
                 'max': '1',
