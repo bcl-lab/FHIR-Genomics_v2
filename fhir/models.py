@@ -117,9 +117,15 @@ class Resource(db.Model, SimpleInsert):
         self.visible = True
         self.owner_id = owner_id
         if resource_type == 'Sequence':
+<<<<<<< HEAD
             self.chromosome = data['coordinate']['chromosome']['text']
             self.start = data['coordinate']['start']
             self.end = data['coordinate']['end']
+=======
+            self.chromosome = data['chromosome']['text']
+            self.start = data['start']
+            self.end = data['end']
+>>>>>>> origin/master
 
     def update(self, data):
         '''
