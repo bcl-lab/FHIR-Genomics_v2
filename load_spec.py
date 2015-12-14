@@ -2,7 +2,6 @@ import re
 import os
 import sys
 import json
-from fhir.sequence import sequence_resource, sequence_reference_types
 
 # RE used to search resource profiles in FHIR's specs. directory
 PROFILE_F_RE = re.compile(r'^type-(?P<datatype>\w+).profile.json$|^(?P<resource>\w+).profile.json$')
@@ -48,7 +47,7 @@ def process_profile(profile):
                     type_for_praram = 'date'
                 elif code in ['code', 'CodeableConcept', 'Coding', 'Identifier', 'ContactPoint', 'boolean']:
                     type_for_praram = 'token'
-                elif 'reference' in code:
+                elif 'reference' in code or 'Reference' in code:
                     type_for_praram = 'reference'
                 elif 'Quantity' in code:
                     type_for_praram = 'quantity'
@@ -95,9 +94,6 @@ def load_spec(spec_dir):
                 profile_loc)
             name = elements[0]['path']
             # manually add assessed-condition into list of serach params
-            if name == 'Observation':
-                resource_search_params['assessed-condition'] = 'reference'
-                resource_reference_types['assessed-condition'] = ['Condition']
 
             specs[name] = {
                 'elements': elements,
@@ -110,6 +106,15 @@ def load_spec(spec_dir):
 
             print 'Loaded %s\'s profile' % name
             resources.append('name')
+
+    with open('fhir/fhir_spec.py', 'w') as spec_target:
+        spec_target.write("'''\n%s\n'''" % WARNING)
+        spec_target.write('\n')
+        spec_target.write('SPECS=' + str(specs))
+        spec_target.write('\n')
+        spec_target.write('RESOURCES=set(%s)'% str(resources))
+        spec_target.write('\n')
+        spec_target.write('REFERENCE_TYPES=' + str(reference_types))
 
 
 if __name__ == '__main__':

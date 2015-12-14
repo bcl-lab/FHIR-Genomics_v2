@@ -223,7 +223,7 @@ class QueryBuilder(object):
         self.owner_id = resource_owner.email
 
     def make_reference_pred(self, param_data, param_val, resource_type):
-        '''	
+        '''
         make a predicate based on a ResourceReference
 
         Implement it as a method here because `make_reference_pred`,
@@ -236,7 +236,9 @@ class QueryBuilder(object):
         # or implied because a resource def. that says it can only be one resource type.
         # either way, we have to figure it out.
         modifier = param_data['modifier']
-        possible_reference_types = REFERENCE_TYPES[resource_type][param_data['param']]
+        #modifier = 'Sequence'
+        possible_reference_types = REFERENCE_TYPES
+
         if modifier not in possible_reference_types and (
             possible_reference_types[0] == 'Any' or
             len(possible_reference_types) > 1):
@@ -247,15 +249,18 @@ class QueryBuilder(object):
                         if modifier is not None and modifier not in NON_TYPE_MODIFIERS
                         else possible_reference_types[0]) 
         chained_param = param_data['chained_param']
+
         if chained_param is not None:
             # we have a chained query...
             chained_query = {chained_param: param_val}
             # make a subquery that finds referenced resoruce that fits the description
             reference_query = self.build_query(referenced_type,
                                          chained_query,
-                                         id_only=True) 
+                                         id_only=True)
+
             pred = db.and_(SearchParam.referenced_type==referenced_type,
                             SearchParam.referenced_id.in_(reference_query))
+
         else:
             pred = db.and_(SearchParam.referenced_id==param_val,
                             SearchParam.referenced_type==referenced_type)
@@ -339,5 +344,6 @@ class QueryBuilder(object):
             return db.select([Resource.resource_id]).\
                                     select_from(Resource).\
                                     where(db.and_(*query_args)).alias()
-        else: 
+
+        else:
             return Resource.query.filter(*query_args)

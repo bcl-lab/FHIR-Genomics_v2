@@ -141,7 +141,7 @@ class TTAMClient(db.Model):
         '''
         helper functions for getting HTTP Header to make 23andme API call
         '''
-        return {'x-access-token': {self.access_token}}
+        return {'Authorization': 'Bearer '+self.access_token} 
 
     @api_call
     def get_patients(self):

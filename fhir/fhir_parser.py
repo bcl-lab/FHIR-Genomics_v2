@@ -72,16 +72,16 @@ def parse(datatype, data, correctible):
         elements = [FHIRElement(element_spec, correctible)
                     for element_spec in SPECS[datatype]['elements']]
 
+
         search_elements = [element.get_search_elements()
                            for element in elements if element.validate(data)]
-
         if len(elements) != len(search_elements):
-
             return False, None
         search_elements = filter(lambda x: x.get('spec') is not None,
                         search_elements)
 
     # extract element for SMART Genomics' custom search param - assesed-condition
+    '''
     if datatype == 'Observation':
         condition = get_assessed_condition(data, correctible)
         customed_search_param = {
@@ -90,7 +90,7 @@ def parse(datatype, data, correctible):
         if condition is not None:
             customed_search_param['elements'].append(condition)
         search_elements.append(customed_search_param)
-
+    '''
     return True, search_elements
 
 

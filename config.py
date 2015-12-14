@@ -1,7 +1,7 @@
 # settings for Postgres
-PGUSERNAME = 'smart'
-PGPASSWORD = 'smart'
-DBNAME = 'db'
+PGUSERNAME = 'username'
+PGPASSWORD = 'password'
+DBNAME = 'xyz'
 
 APP_CONFIG = {
 		# SQL connection url
@@ -14,15 +14,15 @@ APP_CONFIG = {
 		# drop your own 23andme API credentials here
 		# WARNING: don't touch 'scope'
         'TTAM_CONFIG': {
-            'redirect_uri': 'http://genomics-advisor.smartplatforms.org:8080/ttam/recv_redirect',
-            'client_id': 'fe9976a9815d2e68cc4fc0c0d247f1c3',
+            'redirect_uri': 'http://localhost:5000/ttam/recv_redirect',
+            'client_id': '7d12b72cdc040f0b31a1a5606e4902f5',
             'client_secret': 'd68b746d63e53dff0cd65d3260940f9b',
             'scope': 'basic names genomes',
             'auth_uri': 'http://api.23andme.com/authorize'
         },
 
         'GA4GH_CONFIG': {
-            'redirect_uri': 'http://genomics-advisor.smartplatforms.org:8080/ga4gh/recv_redirect',
+            'redirect_uri': 'http://localhost:5000/ga4gh/recv_redirect',
             'client_id': '849738343457-1d891ektv7o9vjeff1dk1p9shrid5bp9.apps.googleusercontent.com',
             'client_secret': 'F11jjtuEA66KqOYn4RcBBhPk',
             'scope': 'basic names genomes',
@@ -32,7 +32,7 @@ APP_CONFIG = {
 }
 
 # Put Your host name here
-HOST = 'genomics-advisor.smartplatforms.org:8080'
+HOST = 'localhost:8080'
 
 # replace this with directory where you put your FHIR specification,
 # which, should be roughly in this a format like this the `/site` directory 
