@@ -51,6 +51,7 @@ OBS_GENETICS_EXTENSION_URL = ['http://hl7.org/fhir/StructureDefinition/observati
                               'http://hl7.org/fhir/StructureDefinition/observation-geneticsVariationHGVS',
                               'http://hl7.org/fhir/StructureDefinition/observation-geneticsVariationType',
                               'http://hl7.org/fhir/StructureDefinition/observation-geneticsAminoAcidVariation']
+REPORT_GENETICS_EXTENSION_URL = ['http://hl7.org/fhir/StructureDefinition/diagnosticreport-geneticsAssessedCondition']
 
 
 def get_observation_genetics_extensions(observation):
@@ -81,6 +82,15 @@ def get_observation_genetics_extensions(observation):
             ob_aminoacidvariation = extension.get('valueCodeableConcept')
             results['AminoAcidVariation'] = ob_aminoacidvariation
 
+    return results
+
+
+def get_report_genetics_extensions(report):
+    results = {}
+    for extension in report.get('extension', []):
+        if extension.get('url') == REPORT_GENETICS_EXTENSION_URL[0]:
+            condition = extension.get('valueReference')
+            results['AssessedCondition'] = condition
     return results
 
 
@@ -116,7 +126,7 @@ def parse(datatype, data, correctible):
             elif i in ['Sequence']:
                 spec['type'] = 'reference'
 
-            spec['name'] = i[0].lower() + i[1:]
+            spec['name'] = i
 
             customed_search_param = {
                 'spec': spec,
@@ -124,6 +134,20 @@ def parse(datatype, data, correctible):
             }
             search_elements.append(customed_search_param)
 
+    if datatype == 'DiagnosticReport':
+        results = get_report_genetics_extensions(data)
+        for i in results:
+            spec = {}
+            if i in ['AssessedCondition']:
+                spec['type'] = 'reference'
+
+            spec['name'] = i
+
+            customed_search_param = {
+                'spec': spec,
+                'elements': [results[i]]
+            }
+            search_elements.append(customed_search_param)
     return True, search_elements
 
 
