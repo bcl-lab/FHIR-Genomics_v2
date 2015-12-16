@@ -17,6 +17,7 @@ from vcf import VCFReader
 
 BASEDIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'fhir')
 MAX_SEQ_PER_FILE = 10
+PRE_EXTENSION_OBS_URL = 'http://hl7.org/fhir/StructureDefinition/observation-genetics'
 
 class MockG(object):
     def __init__(self):
@@ -55,7 +56,7 @@ def save_resource(resource_type, resource_data):
     save a resource to database and index its elements by search params
     '''
     valid, search_elements = parse_resource(resource_type, resource_data)
-    #assert valid
+    assert valid
     resource = test_resource(resource_type, resource_data) 
     index_resource(resource, search_elements, g=BUF)
     return resource
@@ -104,12 +105,14 @@ def load_vcf_example(vcf_file):
         sequence_tmpl = {
             'text': {'status': 'generated'},
             'resourceType': 'Sequence',
-            'coordinate': {
+            'type': 'DNA',
+            'coordinate': [
+                {
                 'chromosome': {'text': record.CHROM},
                 'start': record.POS,
                 'end': record.end,
                 'genomeBuild': {'text': 'GRCh37'}
-            },
+            }],
 
             'species': {'text': 'Homo sapiens',
                         'coding': [{
@@ -117,6 +120,9 @@ def load_vcf_example(vcf_file):
                             'code': '337915000'}]},
             'referenceAllele': record.REF
         }
+
+        seq_data = dict(sequence_tmpl)
+
         for sample in record.samples:
             sample_id = sample.sample
             reads = sample.gt_bases
@@ -132,51 +138,22 @@ def load_vcf_example(vcf_file):
             # get name of the variant
             variant_id = record.ID
             variant = variant_id if variant_id is not None else 'anonymous variant'
-            seq_data['variantID'] = {'coding': [{
-                                                'system': 'http://www.ncbi.nlm.nih.gov/projects/SNP/snp_ref.cgi',
-                                                'code': variant_id
-                                                }]}
+
+            seq_data['variationID'] = {
+                                       'coding': [{
+                                                   'system': 'http://www.ncbi.nlm.nih.gov/projects/SNP/snp_ref.cgi',
+                                                   'code': variant_id
+                                                   }]}
 
             seq_data['text']['div']  = '<div>Genotype of %s is %s</div>'% (variant, reads)
 
-            # get name of the gene
-            if record.INFO.get('SNPEFF_GENE_NAME'):
-                gene_name = record.INFO.get('SNPEFF_GENE_NAME')
-                gene_id = None
-                for genename_file in os.listdir(os.path.join(BASEDIR, 'examples/genename')):
-                    f = file(os.path.join(BASEDIR, 'examples/genename/genenames-HGNC.txt'))
-                    for line in f.readlines():
-                        lis_line = line[0:-1].split('\t')
-                        if lis_line[1] == gene_name:
-                            gene_id = lis_line[0].split(':')[1]
-                            break
-                if gene_id:
-                    seq_data['gene'] = {'text': gene_name,
-                                        'coding':[{
-                                            'system': 'http://www.genenames.org/',
-                                            'code': gene_id
-                                        }]}
-                else:
-                    seq_data['gene'] = {'text': gene_name}
+            gene_name = record.INFO.get('SNPEFF_GENE_NAME')
 
-            # get source
-            if random.random() < 0.5:
-                seq_data['source'] = {'text': 'Somatic',
-                                      'coding': [{
-                                          'system': "http://hl7.org/fhir/LOINC-48002-0-answerlist",
-                                          'code': "LA6684-0"
-                                      }]}
-            else:
-                seq_data['source'] = {'text': 'Germline',
-                                      'coding': [{
-                                          'system': "http://hl7.org/fhir/LOINC-48002-0-answerlist",
-                                          'code': "LA6683-2"
-                                      }]}
             sequence = save_resource('Sequence', seq_data)
             print 'Created Sequence at %s:%s-%s'% (record.CHROM, record.POS, record.end)
             count += 1
             sequence_ids.append(sequence.get_reference())
-                    
+            make_observation_for_sequence(sequence.get_reference(), gene_name)
         if MAX_SEQ_PER_FILE is not None and count >= MAX_SEQ_PER_FILE:
             break
 
@@ -188,6 +165,90 @@ def rand_date():
                                         random.randint(0, 23),
                                         random.randint(0, 60))
     return date
+
+
+def make_observation_for_sequence(reference, gene_name):
+    f = file (BASEDIR + '/examples/loinc-code.csv')
+    code, text = None, None
+    for line in f.readlines():
+        line = line.split(',')
+        if gene_name + ' gene mutation analysis' in line[1]:
+            code = line[0]
+            text = line[1]
+            break
+    if not code:
+        code = '55233-1'
+        text = 'Genetic analysis master panel'
+
+    observation = {
+        'resourceType': 'Observation',
+
+        'category': {'text': 'Laboratory',
+                     'coding': [{
+                                'system': "http://hl7.org/fhir/ValueSet/observation-category",
+                                'code': "laboratory"
+                                }]
+                     },
+        'code': {'text': text,
+                 'coding': [{
+                            'system': "http://loinc.org",
+                            'code': code
+                            }]
+                 },
+
+        'subject': patient_ids[random.randint(0, len(patient_ids)-1)],
+
+        'status': 'final'
+
+    }
+    extension = []
+    # get source randomly
+    if random.random() < 0.5:
+        source = {'url': PRE_EXTENSION_OBS_URL+'Source',
+                  'valueCodeableConcept': {'text': 'Somatic',
+                                           'coding': [{
+                                                      'system': "http://hl7.org/fhir/LOINC-48002-0-answerlist",
+                                                      'code': "LA6684-0"
+                                                      }]}}
+
+    else:
+        source = {'url': PRE_EXTENSION_OBS_URL+'Source',
+                  'valueCodeableConcept': {'text': 'Germline',
+                                           'coding': [{
+                                                      'system': "http://hl7.org/fhir/LOINC-48002-0-answerlist",
+                                                      'code': "LA6683-2"
+                                                      }]}}
+    extension.append(source)
+
+    # get gene name
+    if gene_name:
+        gene_id = None
+        f = file(os.path.join(BASEDIR, 'examples/genename/genenames-HGNC.txt'))
+        for line in f.readlines():
+            lis_line = line[0:-1].split('\t')
+            if lis_line[1] == gene_name:
+                gene_id = lis_line[0].split(':')[1]
+                break
+        if gene_id:
+            gene = {'url': PRE_EXTENSION_OBS_URL+'Gene',
+                    'valueCodeableConcept': {'text': gene_name,
+                                             'coding':[{
+                                                        'system': 'http://www.genenames.org/',
+                                                        'code': gene_id
+                                                        }]}}
+        else:
+            gene = {'url': PRE_EXTENSION_OBS_URL+'Gene',
+                    'valueCodeableConcept': {'text': gene_name}}
+        extension.append(gene)
+
+    # get sequence reference
+    sequence = {'url': PRE_EXTENSION_OBS_URL + 'Sequence',
+                'valueReference': sequence_ids[random.randint(0, len(sequence_ids)-1)]}
+    extension.append(sequence)
+
+    observation['extension'] = extension
+    print 'Created Observation-genetics instance'
+    return save_resource('Observation', observation)
 
 
 def make_observation():
@@ -209,11 +270,7 @@ def make_observation():
 
         'subject': patient_ids[random.randint(0, len(patient_ids)-1)],
 
-        'status': 'final',
-
-        'valueReference': sequence_ids[random.randint(0, len(sequence_ids)-1)],
-
-        'speciment': 
+        'status': 'final'
     }
 
     print 'Created Observation (Genetic Observation)'
@@ -265,7 +322,7 @@ if __name__ == '__main__':
         patient_ids = []
         sequence_ids = []
 
-        for _ in xrange(8):
+        for _ in xrange(10):
             patient = rand_patient()
             patient_ids.append(patient.get_reference())
 
@@ -278,9 +335,5 @@ if __name__ == '__main__':
             x = random.randint(0, sequence_amount-1)
             y = random.randint(0, sequence_amount-1)
             sequence_ids[x], sequence_ids[y] = sequence_ids[y], sequence_ids[x]
-
-        # create Observation resource
-        for _ in xrange(8):
-            make_observation()
 
         commit_buffers(BUF) 
