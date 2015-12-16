@@ -83,7 +83,6 @@ def index_reference(index, element, owner_id, g):
                                                            resource_id=reference.group('resource_id'),
                                                            owner_id=owner_id,
                                                            visible=True).first()
-            
     return index
 
 
