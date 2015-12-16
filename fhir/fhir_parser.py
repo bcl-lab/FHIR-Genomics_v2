@@ -43,24 +43,45 @@ FHIR_PRIMITIVE_INIT = {
     'integer': int
 }
 
-ASSESED_TRAIT_EXTENSION_URL = 'http://genomics.smartplatforms.org/dictionary/GeneticObservation#AssessedCondition'
+PRE_EXTENSION_OBS_URL = 'http://hl7.org/fhir/StructureDefinition/observation-genetics'
+OBS_GENETICS_EXTENSION_URL = ['http://hl7.org/fhir/StructureDefinition/observation-geneticsSequence',
+                              'http://hl7.org/fhir/StructureDefinition/observation-geneticsSource',
+                              'http://hl7.org/fhir/StructureDefinition/observation-geneticsGene',
+                              'http://hl7.org/fhir/StructureDefinition/observation-geneticsRegion',
+                              'http://hl7.org/fhir/StructureDefinition/observation-geneticsVariationHGVS',
+                              'http://hl7.org/fhir/StructureDefinition/observation-geneticsVariationType',
+                              'http://hl7.org/fhir/StructureDefinition/observation-geneticsAminoAcidVariation']
 
-ASSESSED_TRAIT_SPEC = {
-    'type': 'reference',
-    'name': 'assessed-condition'
-}
 
-def get_assessed_condition(observation, correctable):
+def get_observation_genetics_extensions(observation):
     '''
     extract assesed condition from a Observation extended with "GeneticObservation"
     '''
+    results = {}
     for extension in observation.get('extension', []):
-        if extension.get('url') == ASSESED_TRAIT_EXTENSION_URL:
-            condition_ref = extension.get('valueReference')            
-            if isinstance(condition_ref, dict):
-                valid, _ = parse('ResourceReference', condition_ref, correctable)
-                if valid:
-                    return condition_ref
+        if extension.get('url') == OBS_GENETICS_EXTENSION_URL[0]:
+            ob_sequence = extension.get('valueReference')
+            results['Sequence'] = ob_sequence
+        elif extension.get('url') == OBS_GENETICS_EXTENSION_URL[1]:
+            ob_source = extension.get('valueCodeableConcept')
+            results['Source'] = ob_source
+        elif extension.get('url') == OBS_GENETICS_EXTENSION_URL[2]:
+            ob_gene = extension.get('valueCodeableConcept')
+            results['Gene'] = ob_gene
+        elif extension.get('url') == OBS_GENETICS_EXTENSION_URL[3]:
+            ob_region = extension.get('valueCodeableConcept')
+            results['Region'] = ob_region
+        elif extension.get('url') == OBS_GENETICS_EXTENSION_URL[4]:
+            ob_variationhgvs = extension.get('valueCodeableConcept')
+            results['VariationHGVS'] = ob_variationhgvs
+        elif extension.get('url') == OBS_GENETICS_EXTENSION_URL[5]:
+            ob_variationtype = extension.get('valueCodeableConcept')
+            results['VariationType'] = ob_variationtype
+        elif extension.get('url') == OBS_GENETICS_EXTENSION_URL[6]:
+            ob_aminoacidvariation = extension.get('valueCodeableConcept')
+            results['AminoAcidVariation'] = ob_aminoacidvariation
+
+    return results
 
 
 def parse(datatype, data, correctible):
@@ -72,25 +93,37 @@ def parse(datatype, data, correctible):
         elements = [FHIRElement(element_spec, correctible)
                     for element_spec in SPECS[datatype]['elements']]
 
-
         search_elements = [element.get_search_elements()
                            for element in elements if element.validate(data)]
+
+        for element in elements:
+            if not element.validate(data):
+                print element, element.get_search_elements()
+
         if len(elements) != len(search_elements):
             return False, None
         search_elements = filter(lambda x: x.get('spec') is not None,
                         search_elements)
 
     # extract element for SMART Genomics' custom search param - assesed-condition
-    '''
+
     if datatype == 'Observation':
-        condition = get_assessed_condition(data, correctible)
-        customed_search_param = {
-            'spec': ASSESSED_TRAIT_SPEC,
-            'elements': []}
-        if condition is not None:
-            customed_search_param['elements'].append(condition)
-        search_elements.append(customed_search_param)
-    '''
+        results = get_observation_genetics_extensions(data)
+        for i in results:
+            spec = {}
+            if i in ['Gene', 'Source', 'VariationHGVS', 'VariationType', 'AminoAcidVariation', 'Region']:
+                spec['type'] = 'token'
+            elif i in ['Sequence']:
+                spec['type'] = 'reference'
+
+            spec['name'] = i[0].lower() + i[1:]
+
+            customed_search_param = {
+                'spec': spec,
+                'elements': [results[i]]
+            }
+            search_elements.append(customed_search_param)
+
     return True, search_elements
 
 
