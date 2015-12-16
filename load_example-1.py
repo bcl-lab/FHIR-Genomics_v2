@@ -54,7 +54,7 @@ def save_resource(resource_type, resource_data):
     save a resource to database and index its elements by search params
     '''
     valid, search_elements = parse_resource(resource_type, resource_data)
-    assert valid
+    #assert valid
     resource = test_resource(resource_type, resource_data) 
     index_resource(resource, search_elements, g=BUF)
     return resource
