@@ -74,7 +74,6 @@ def process_profile(profile):
             param_name = element['searchParam']['name']
             param_type = element['searchParam']['type']
             search_params[param_name] = param_type
-
     return elements, search_params, reference_types
 
 
@@ -94,6 +93,15 @@ def load_spec(spec_dir):
                 profile_loc)
             name = elements[0]['path']
             # manually add assessed-condition into list of serach params
+            if name == 'Observation':
+                resource_search_params['sequence'] = 'reference'
+                resource_reference_types['sequence'] = ['Sequence']
+                resource_search_params['source'] = 'token'
+                resource_search_params['variationhgvs'] = 'token'
+                resource_search_params['variationtype'] = 'token'
+                resource_search_params['aminoacidvariation'] = 'token'
+                resource_search_params['region'] = 'token'
+                resource_search_params['gene'] = 'token'
 
             specs[name] = {
                 'elements': elements,
