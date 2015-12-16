@@ -2,11 +2,14 @@ import re
 import os
 import sys
 import json
-
 # RE used to search resource profiles in FHIR's specs. directory
 PROFILE_F_RE = re.compile(r'^type-(?P<datatype>\w+).profile.json$|^(?P<resource>\w+).profile.json$')
 WARNING = 'WARNING: this is auto generated. Change it at your risk.'
-
+'''
+Manual changes made to fhir_spec.py:
+    1. add definition to Observation's last elements
+    2. change effective[x] to effectiveDateTime
+'''
 def load_and_process_profile(profile_loc):
     '''
     load a profile file and prepare it as internal structure for specs. code generation
@@ -94,14 +97,17 @@ def load_spec(spec_dir):
             name = elements[0]['path']
             # manually add assessed-condition into list of serach params
             if name == 'Observation':
-                resource_search_params['sequence'] = 'reference'
-                resource_reference_types['sequence'] = ['Sequence']
-                resource_search_params['source'] = 'token'
-                resource_search_params['variationhgvs'] = 'token'
-                resource_search_params['variationtype'] = 'token'
-                resource_search_params['aminoacidvariation'] = 'token'
-                resource_search_params['region'] = 'token'
-                resource_search_params['gene'] = 'token'
+                resource_search_params['Sequence'] = 'reference'
+                resource_reference_types['Sequence'] = ['Sequence']
+                resource_search_params['Source'] = 'token'
+                resource_search_params['VariationHGVS'] = 'token'
+                resource_search_params['VariationType'] = 'token'
+                resource_search_params['AminoAcidVariation'] = 'token'
+                resource_search_params['Region'] = 'token'
+                resource_search_params['Gene'] = 'token'
+            if name == 'DiagnosticReport':
+                resource_search_params['AssessedCondition'] = 'reference'
+                resource_reference_types['AssessedCondition'] = ['Condition']
 
             specs[name] = {
                 'elements': elements,
