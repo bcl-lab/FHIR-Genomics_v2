@@ -8,5 +8,5 @@
             "system": "http://snomed.org/sct"
         }]
     },
-    "status": "confirmed"
+    "verificationStatus": "confirmed"
 }
