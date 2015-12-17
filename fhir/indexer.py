@@ -151,6 +151,7 @@ def index_resource(resource, search_elements, g=g):
     resource.add_and_commit()
     params = []
     for search_param in search_elements:
+        #print search_param
         args = get_search_args(resource, search_param['spec'])
         elements = search_param['elements']
         if len(elements) == 0:

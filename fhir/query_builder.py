@@ -236,7 +236,6 @@ class QueryBuilder(object):
         # or implied because a resource def. that says it can only be one resource type.
         # either way, we have to figure it out.
         modifier = param_data['modifier']
-        #modifier = 'Sequence'
         possible_reference_types = REFERENCE_TYPES
 
         if modifier not in possible_reference_types and (

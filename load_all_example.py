@@ -63,11 +63,10 @@ def rand_patient():
 
 def rand_observations(patientId, index):
     gene_name = gene_names[index]
-    f = file (BASEDIR + '/examples/loinc-code.csv')
+    f = file (BASEDIR + '/examples/loinc-code.txt')
     code, text = None, None
     for line in f.readlines():
-        line = line.split(',')
-        print line
+        line = line.split('\t')
         if gene_name and gene_name + ' gene mutation analysis' in line[1]:
             code = line[0]
             text = line[1]
