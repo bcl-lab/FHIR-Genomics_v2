@@ -6,6 +6,7 @@ from ttam.view import ttam
 from database import db
 from argparse import ArgumentParser
 from ga4gh.view import ga4gh
+from basespace.view import basespace
 
 
 def register_blueprints(app):
@@ -21,6 +22,7 @@ def register_blueprints(app):
     app.register_blueprint(ui)
     app.register_blueprint(ttam, url_prefix='/ttam')
     app.register_blueprint(ga4gh, url_prefix='/ga4gh')
+    app.register_blueprint(basespace, url_prefix='/ga4gh')
 
 
 def create_app(config):

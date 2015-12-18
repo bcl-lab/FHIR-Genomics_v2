@@ -4,6 +4,7 @@ from models import BaseSpaceClient, BaseSpaceOAuthError
 from ..ui import require_login, get_session
 from ..database import db
 
+
 basespace = Blueprint('basespace', __name__)
 
 basespace.before_request(get_session)
