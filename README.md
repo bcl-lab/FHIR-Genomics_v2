@@ -4,13 +4,18 @@ Reference API server of SMART Genomics
 1. Install dependency with
 
 	```
+    # python 2.7
 	# this might require previledge (e.g. sudo)
-	# or use virtualenv instead
+	# or use virtualenv instead (recommended)
 	$ pip install -r requirements.txt
 	```
-2. Rename `config.py.default` as `config.py` and fill in settings as you desire. See comments in `config.py.default` for detailed instructions.
-Currently we use PostgresSQL for development, and our script `setup_db.py` is written specifically for Postgres, you can switch to SQLite by using the proper SQL connection url in `config.py`. MySQL is however not supported right now. Contributions to support MySQL are welcomed.
-3. Optional: load your version of FHIR spec with the script `load_spec.py`, which will update `fhir/fhir_spec.py`.
+    Install PostgreSQL. Currently we use PostgresSQL for development, and our script `setup_db.py` is written specifically for Postgre. Contributions to support MySQL are welcomed.
+
+2. Edit `config.py`. Fill in settings for database, host, etc. as you desire. See comments in `config.py` for detailed instructions.
+
+3. Optional: load your version of FHIR spec with the script `load_spec.py`, which will update `fhir/fhir_spec.py`. Please read comments in 'load_spec.py' carefully before using it.
+    The specification for Connectathon 11 can be downloaded at: http://www.hl7.org/fhir/2016Jan/downloads.html
+
 4. If you haven't created the database you specified in `config.py`, simply use command below to create it
 	
 	```
