@@ -13,7 +13,7 @@ Reference API server of SMART Genomics
 
 2. Edit `config.py`. Fill in settings for database, host, etc. as you desire. See comments in `config.py` for detailed instructions.
 
-3. Optional: load your version of FHIR spec with the script `load_spec.py`, which will update `fhir/fhir_spec.py`. Please read comments in 'load_spec.py' carefully before using it.
+3. Optional: load your version of FHIR spec with the script `load_spec.py`, which will update `fhir/fhir_spec.py`. Please read comments in `load_spec.py` carefully before using it.
     The specification for Connectathon 11 can be downloaded at: http://www.hl7.org/fhir/2016Jan/downloads.html
 
 4. If you haven't created the database you specified in `config.py`, simply use command below to create it
