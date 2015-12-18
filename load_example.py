@@ -1,3 +1,4 @@
+__author__ = 'HemingY'
 '''
 Load randomly generated example data into the database
 '''
@@ -18,37 +19,13 @@ from vcf import VCFReader
 BASEDIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'fhir')
 MAX_SEQ_PER_FILE = 10
 PRE_EXTENSION_OBS_URL = 'http://hl7.org/fhir/StructureDefinition/observation-genetics'
+PRE_EXTENSION_REPORT_URL = 'http://hl7.org/fhir/StructureDefinition/diagnosticreport-genetics'
 
 class MockG(object):
     def __init__(self):
         self._nodep_buffers = {}
 
 BUF = MockG()
-
-RELIABILITIES = ['questionable', 'ongoing', 'ok', 'calibrating', 'early']
-INTERPRETATIONS = [
-    {
-        'code': 'L',
-        'display': 'Below low normal',
-        'system': 'http://hl7.org/fhir/vs/observation-interpretation'
-    }, { 
-        'code': 'IND',
-        'display': 'Intermediate',
-        'system': 'http://hl7.org/fhir/vs/observation-interpretation'
-    }, { 
-        'code': 'H',
-        'display': 'Above high normal',
-        'system': 'http://hl7.org/fhir/vs/observation-interpretation'
-    }, { 
-        'code': 'NEG',
-        'display': 'Negative',
-        'system': 'http://hl7.org/fhir/vs/observation-interpretation'
-    }, { 
-        'code': 'POS',
-        'display': 'Positive',
-        'system': 'http://hl7.org/fhir/vs/observation-interpretation'
-    }
-]
 
 
 def save_resource(resource_type, resource_data):
@@ -57,7 +34,7 @@ def save_resource(resource_type, resource_data):
     '''
     valid, search_elements = parse_resource(resource_type, resource_data)
     assert valid
-    resource = test_resource(resource_type, resource_data) 
+    resource = test_resource(resource_type, resource_data)
     index_resource(resource, search_elements, g=BUF)
     return resource
 
@@ -84,14 +61,106 @@ def rand_patient():
     return save_resource('Patient', data)
 
 
-def load_patients_by_samples(samples):
-    return {sample: rand_patient() for sample in samples}
+def rand_observations(patientId, index):
+    gene_name = gene_names[index]
+    f = file (BASEDIR + '/examples/loinc-code.txt')
+    code, text = None, None
+    for line in f.readlines():
+        line = line.split('\t')
+        if gene_name and gene_name + ' gene mutation analysis' in line[1]:
+            code = line[0]
+            text = line[1]
+            break
+    if not code:
+        code = '55233-1'
+        text = 'Genetic analysis master panel'
 
+    observation = {
+        'resourceType': 'Observation',
 
-def load_labs_by_patients(patients):
-    # patients is a key-value pair of sample and patient
-    return {sample: rand_lab(patients[sample])
-        for sample in patients.keys()}
+        'category': {'text': 'Laboratory',
+                     'coding': [{
+                                'system': "http://hl7.org/fhir/ValueSet/observation-category",
+                                'code': "laboratory"
+                                }]
+                     },
+        'code': {'text': text,
+                 'coding': [{
+                            'system': "http://loinc.org",
+                            'code': code
+                            }]
+                 },
+
+        'subject': patientId,
+
+        'status': 'final'
+
+    }
+    
+    if random.random() < 0.2:
+        value = {'text': 'Negative',
+                 'coding': [{
+                           'system': "http://snomed.info/sct",
+                           'code': "260385009"
+                            }]
+                 }
+    else:
+        value = {'text': 'Positive',
+                 'coding': [{
+                            'system': "http://snomed.info/sct",
+                            'code': "10828004"
+                            }]
+                 }
+    observation['value'] = value
+
+    extension = []
+    # get source randomly
+    if random.random() < 0.5:
+        source = {'url': PRE_EXTENSION_OBS_URL+'Source',
+                  'valueCodeableConcept': {'text': 'Somatic',
+                                           'coding': [{
+                                                      'system': "http://hl7.org/fhir/LOINC-48002-0-answerlist",
+                                                      'code': "LA6684-0"
+                                                      }]}}
+
+    else:
+        source = {'url': PRE_EXTENSION_OBS_URL+'Source',
+                  'valueCodeableConcept': {'text': 'Germline',
+                                           'coding': [{
+                                                      'system': "http://hl7.org/fhir/LOINC-48002-0-answerlist",
+                                                      'code': "LA6683-2"
+                                                      }]}}
+    extension.append(source)
+
+    # get gene name
+    if gene_name:
+        gene_id = None
+        f = file(os.path.join(BASEDIR, 'examples/genename/genenames-HGNC.txt'))
+        for line in f.readlines():
+            lis_line = line[0:-1].split('\t')
+            if lis_line[1] == gene_name:
+                gene_id = lis_line[0].split(':')[1]
+                break
+        if gene_id:
+            gene = {'url': PRE_EXTENSION_OBS_URL+'Gene',
+                    'valueCodeableConcept': {'text': gene_name,
+                                             'coding':[{
+                                                        'system': 'http://www.genenames.org/',
+                                                        'code': gene_id
+                                                        }]}}
+        else:
+            gene = {'url': PRE_EXTENSION_OBS_URL+'Gene',
+                    'valueCodeableConcept': {'text': gene_name}}
+        extension.append(gene)
+
+    # get sequence reference
+    sequence = {'url': PRE_EXTENSION_OBS_URL + 'Sequence',
+                'valueReference': sequence_ids[index]}
+    extension.append(sequence)
+
+    observation['extension'] = extension
+    print 'Created Observation-genetics instance'
+    return save_resource('Observation', observation)
 
 
 def load_vcf_example(vcf_file):
@@ -100,7 +169,7 @@ def load_vcf_example(vcf_file):
     serial = 0
     for record in reader:
         serial += 1
-        if serial % 100 != 0:
+        if serial % 1000 != 0:
             continue
         sequence_tmpl = {
             'text': {'status': 'generated'},
@@ -153,135 +222,87 @@ def load_vcf_example(vcf_file):
             print 'Created Sequence at %s:%s-%s'% (record.CHROM, record.POS, record.end)
             count += 1
             sequence_ids.append(sequence.get_reference())
-            make_observation_for_sequence(sequence.get_reference(), gene_name)
+            gene_names.append(gene_name)
         if MAX_SEQ_PER_FILE is not None and count >= MAX_SEQ_PER_FILE:
             break
 
 
-def rand_date():
-    date = "%d-%d-%dT%d:%d:00+01:00" % (random.randint(2010, 2015),
-                                        random.randint(1, 12),
-                                        random.randint(1, 28),
-                                        random.randint(0, 23),
-                                        random.randint(0, 60))
-    return date
-
-
-def make_observation_for_sequence(reference, gene_name):
-    f = file (BASEDIR + '/examples/loinc-code.csv')
-    code, text = None, None
-    for line in f.readlines():
-        line = line.split(',')
-        if gene_name + ' gene mutation analysis' in line[1]:
-            code = line[0]
-            text = line[1]
-            break
-    if not code:
-        code = '55233-1'
-        text = 'Genetic analysis master panel'
-
-    observation = {
-        'resourceType': 'Observation',
-
-        'category': {'text': 'Laboratory',
-                     'coding': [{
-                                'system': "http://hl7.org/fhir/ValueSet/observation-category",
-                                'code': "laboratory"
-                                }]
-                     },
-        'code': {'text': text,
-                 'coding': [{
-                            'system': "http://loinc.org",
-                            'code': code
-                            }]
-                 },
-
-        'subject': patient_ids[random.randint(0, len(patient_ids)-1)],
-
-        'status': 'final'
-
-    }
+def create_diagnosticreport(patientId):
+    conditionId = rand_conditions(patientId)
+    print conditionId
+    performerId = rand_practitioner(patientId)
     extension = []
-    # get source randomly
-    if random.random() < 0.5:
-        source = {'url': PRE_EXTENSION_OBS_URL+'Source',
-                  'valueCodeableConcept': {'text': 'Somatic',
-                                           'coding': [{
-                                                      'system': "http://hl7.org/fhir/LOINC-48002-0-answerlist",
-                                                      'code': "LA6684-0"
-                                                      }]}}
+    assessed_condition = {'url': PRE_EXTENSION_REPORT_URL + 'AssessedCondition',
+                          'valueReference': conditionId}
+    extension.append(assessed_condition)
 
-    else:
-        source = {'url': PRE_EXTENSION_OBS_URL+'Source',
-                  'valueCodeableConcept': {'text': 'Germline',
-                                           'coding': [{
-                                                      'system': "http://hl7.org/fhir/LOINC-48002-0-answerlist",
-                                                      'code': "LA6683-2"
-                                                      }]}}
-    extension.append(source)
+    results = []
+    sequence_index = []
+    for _ in xrange(random.randint(0,10)):
+        index = random.randint(0,len(sequence_ids)-1)
+        if random.randint(0,len(sequence_ids)-1) not in sequence_index:
+            sequence_index.append(index)
+            results.append(rand_observations(patientId, index).get_reference())
 
-    # get gene name
-    if gene_name:
-        gene_id = None
-        f = file(os.path.join(BASEDIR, 'examples/genename/genenames-HGNC.txt'))
-        for line in f.readlines():
-            lis_line = line[0:-1].split('\t')
-            if lis_line[1] == gene_name:
-                gene_id = lis_line[0].split(':')[1]
-                break
-        if gene_id:
-            gene = {'url': PRE_EXTENSION_OBS_URL+'Gene',
-                    'valueCodeableConcept': {'text': gene_name,
-                                             'coding':[{
-                                                        'system': 'http://www.genenames.org/',
-                                                        'code': gene_id
-                                                        }]}}
-        else:
-            gene = {'url': PRE_EXTENSION_OBS_URL+'Gene',
-                    'valueCodeableConcept': {'text': gene_name}}
-        extension.append(gene)
+    data = {
+        'extension': extension,
+        'resourceType': 'DiagnosticReport',
+        'status': 'final',
+        'code': {'text': 'Gene mutation analysis'},
+        'subject': patientId,
+        'effectiveDateTime': rand_date(),
+        'issued': rand_date(),
+        'performer': performerId,
+        'result': results
+        }
 
-    # get sequence reference
-    sequence = {'url': PRE_EXTENSION_OBS_URL + 'Sequence',
-                'valueReference': sequence_ids[random.randint(0, len(sequence_ids)-1)]}
-    extension.append(sequence)
-
-    observation['extension'] = extension
-    print 'Created Observation-genetics instance'
-    return save_resource('Observation', observation)
+    return save_resource('DiagnosticReport', data)
 
 
-def make_observation():
-    observation = {
-        'resourceType': 'Observation',
-
-        'category': {'text': 'Laboratory',
-                     'coding': [{
-                                'system': "http://hl7.org/fhir/ValueSet/observation-category",
-                                'code': "laboratory"
-                                }]
-                     },
-        'code': {'text': 'DNA Analysis Discrete Sequence Variant Panel',
-                 'coding': [{
-                            'system': "http://loinc.org",
-                            'code': "laboratory"
-                            }]
-                 },
-
-        'subject': patient_ids[random.randint(0, len(patient_ids)-1)],
-
-        'status': 'final'
-    }
-
-    print 'Created Observation (Genetic Observation)'
-    return save_resource('Observation', observation)
+def rand_practitioner(patientId):
+    '''
+    randomly assign a set of conditions to a poor patient
+    '''
+    practitioner = random.sample(available_practitioner, 1)
+    practitionerId = 0
+    for cond_tmpl in practitioner:
+        practitioner = dict(cond_tmpl)
+        practitioner['subject'] = patientId
+        practitioner = save_resource('Practitioner', practitioner)
+        practitionerId = practitioner.get_reference()
+        print 'Created practitioner'
+        break
+    return practitionerId
 
 
-def init_superuser():
-    superuser = User(email='super')
-    db.session.add(superuser)
-    global test_resource
-    test_resource = partial(Resource, owner_id=superuser.email)  
+def init_practitioner():
+    practitioner_dir = os.path.join(BASEDIR, 'examples/practitioner')
+    global available_practitioner
+    available_practitioner = map(load_practitioner_from_file, os.listdir(practitioner_dir))
+
+
+def load_practitioner_from_file(path):
+    path = 'practitioner-example.json'
+    print path
+    abspath = os.path.join(BASEDIR, 'examples/practitioner', path)
+    with open(abspath) as practitioner_f:
+        return json.loads(practitioner_f.read())
+
+
+def rand_conditions(patientid):
+    '''
+    randomly assign a set of conditions to a poor patient
+    '''
+    conditions = random.sample(available_conditions,
+                            random.randint(1, len(available_conditions)))
+    conditionid = 0
+    for cond_tmpl in conditions:
+        condition = dict(cond_tmpl)
+        condition['patient'] = patientid
+        conditionid = save_resource('Condition', condition).get_reference()
+        print 'Created condition %s'% condition['code'].get('text', '')
+        break
+    return conditionid
 
 
 def load_condition_from_file(path):
@@ -291,6 +312,12 @@ def load_condition_from_file(path):
         return json.loads(condition_f.read())
 
 
+def init_conditions():
+    condition_dir = os.path.join(BASEDIR, 'examples/conditions')
+    global available_conditions
+    available_conditions = map(load_condition_from_file, os.listdir(condition_dir))
+
+
 def load_specimen_from_file(path):
     print path
     abspath = os.path.join(BASEDIR, 'examples/specimen', path)
@@ -298,42 +325,38 @@ def load_specimen_from_file(path):
         return json.loads(specimen_f.read())
 
 
-def init_conditions():
-    condition_dir = os.path.join(BASEDIR, 'examples/conditions')
-    global available_conditions
-    available_conditions = map(load_condition_from_file, os.listdir(condition_dir))
+def rand_date():
+    date = "%d-%d-%dT%d:%d:00+01:00" % (random.randint(2010, 2015),
+                                        random.randint(1, 11),
+                                        random.randint(1, 27),
+                                        random.randint(0, 23),
+                                        random.randint(0, 59))
+    return date
 
 
-def init_specimen():
-    specimen_dir = os.path.join(BASEDIR, 'examples/specimen')
-    global available_specimens
-    available_specimens = map(load_specimen_from_file, os.listdir(specimen_dir))
+def init_superuser():
+    superuser = User(email='super')
+    db.session.add(superuser)
+    global test_resource
+    test_resource = partial(Resource, owner_id=superuser.email)
 
-
-def init_practitioner():
-    condition_dir = os.path.join(BASEDIR, 'examples/practitioner')
-    global available_practitioner
-    available_conditions = map(load_condition_from_file, os.listdir(condition_dir))
 
 if __name__ == '__main__':
     from server import app
     with app.app_context():
         init_superuser()
+        init_conditions()
+        init_practitioner()
         patient_ids = []
         sequence_ids = []
-
-        for _ in xrange(10):
-            patient = rand_patient()
-            patient_ids.append(patient.get_reference())
+        gene_names = []
 
         for example_file in os.listdir(os.path.join(BASEDIR, 'examples/vcf')):
             load_vcf_example(os.path.join(BASEDIR, 'examples/vcf', example_file))
         sequence_amount = len(sequence_ids)
 
-        # randomize the sequence
-        for i in range (0, int(sequence_amount/10)):
-            x = random.randint(0, sequence_amount-1)
-            y = random.randint(0, sequence_amount-1)
-            sequence_ids[x], sequence_ids[y] = sequence_ids[y], sequence_ids[x]
+        for _ in xrange(50):
+            patient = rand_patient()
+            create_diagnosticreport(patient.get_reference())
 
-        commit_buffers(BUF) 
+        commit_buffers(BUF)
