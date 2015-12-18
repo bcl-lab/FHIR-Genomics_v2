@@ -24,7 +24,7 @@ if __name__ == '__main__':
     if args.option == 'run':
         if args.debug == True:
             #app.run(debug=True)
-            app.run(port=8080, debug=True)
+            app.run(port=2048, debug=True)
         else:
             num_workers = cpu_count() * 2 + 1
             subprocess.call('gunicorn -w %d -b %s -D server:app --log-level error --log-file fhir.log'% (num_workers, HOST), shell=True)
