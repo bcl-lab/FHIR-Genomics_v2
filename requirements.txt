@@ -1,5 +1,6 @@
 flask
 flask-sqlalchemy
+flask-wtf 
 python-dateutil
 lxml
 pyvcf
@@ -8,5 +9,6 @@ names
 gunicorn
 sqlalchemy
 requests
-grequests
 psycopg2
+grequests
+
