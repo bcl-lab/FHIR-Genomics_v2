@@ -3,13 +3,17 @@ import os
 import sys
 import json
 # RE used to search resource profiles in FHIR's specs. directory
+#TODO support multiple types for one element
+
 PROFILE_F_RE = re.compile(r'^type-(?P<datatype>\w+).profile.json$|^(?P<resource>\w+).profile.json$')
 WARNING = 'WARNING: this is auto generated. Change it at your risk.'
 '''
 Manual changes made to fhir_spec.py:
     1. add definition to Observation's last elements
     2. change effective[x] to effectiveDateTime
+    3. change value[x] to value, type to CodeableConcept
 '''
+
 def load_and_process_profile(profile_loc):
     '''
     load a profile file and prepare it as internal structure for specs. code generation
