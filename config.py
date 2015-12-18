@@ -32,7 +32,7 @@ APP_CONFIG = {
 }
 
 # Put Your host name here
-HOST = 'localhost:8080'
+HOST = 'localhost:2048'
 
 # replace this with directory where you put your FHIR specification,
 # which, should be roughly in this a format like this the `/site` directory 
