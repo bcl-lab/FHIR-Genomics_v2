@@ -18,7 +18,7 @@ MAIL = 'yhmyhm@mail.ustc.edu.cn'
 
 def require_client(adaptor):
     '''
-    decorator for functions that makes 23andme API call
+    decorator for functions that makes ga4gh API call
     '''
     @wraps(adaptor)
     def checked(*args, **kwargs):
