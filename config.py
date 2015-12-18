@@ -5,7 +5,6 @@ DBNAME = 'xyz'
 
 APP_CONFIG = {
 		# SQL connection url
-		# you can also use SQLite here if you want. MySQL doesn't work right now.
         #'SQLALCHEMY_DATABASE_URI': "postgresql+psycopg2://%s:%s@localhost/%s"% (
         #    PGUSERNAME,
         #    PGPASSWORD,
