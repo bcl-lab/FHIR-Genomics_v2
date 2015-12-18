@@ -43,7 +43,6 @@ def api_call(call_func):
     return checked
 
 
-# TODO test demo data
 class GA4GHClient(db.Model):
     '''
     GA4GH API client
