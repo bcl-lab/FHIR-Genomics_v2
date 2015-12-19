@@ -14,9 +14,9 @@ EXPIRE_TIME = 1800
 LAUNCH_RESOURCES = set(['Patient', 'Encounter', 'Location'])
 
 
-def commit_buffers(g): 
+def commit_buffers(g):
     for model, buf in g._nodep_buffers.iteritems():
-        model.core_insert(buf) 
+        model.core_insert(buf)
 
 
 def save_buffer(g, model, obj):
@@ -25,11 +25,11 @@ def save_buffer(g, model, obj):
 
 
 # TODO make this more efficient (maybe with a bit of boilerplate...)
-class SimpleInsert(object): 
+class SimpleInsert(object):
     '''
     Use this as a mixin (maybe there's another word for it), anyway
     Combine this with a ORM class you get to use SqlAlc's core insert easily.
-    ''' 
+    '''
     _relationships = None
 
     def __init__(self):
@@ -56,14 +56,14 @@ class SimpleInsert(object):
                 for loc, rem in rel.local_remote_pairs:
                     update[loc.name] = v.__dict__.get(rem.name)
 
-        self.__dict__.update(update) 
+        self.__dict__.update(update)
 
     def get_insert_params(self):
         self._populate()
         return {col.name: self.__dict__.get(col.name)
                 for col in self.__table__.columns
                 # ensure non-null primary_key
-                if not col.primary_key or self.__dict__.get(col.name) is not None} 
+                if not col.primary_key or self.__dict__.get(col.name) is not None}
 
     def add_and_commit(self):
         db.session.commit()
@@ -81,7 +81,7 @@ class Resource(db.Model, SimpleInsert):
 
     A Resource is either owned by a real user or is public and owned by the "super" user.
     Upon sign up, all public resources are copied and assigned an owner - the new user.
-    this is how we manage the sandbox. The user can do what ever he or she wants to that set of 
+    this is how we manage the sandbox. The user can do what ever he or she wants to that set of
     resources, and since resources are replicated, what a user does to a resource won't
     affect that of another user.
     '''
@@ -117,9 +117,13 @@ class Resource(db.Model, SimpleInsert):
         self.visible = True
         self.owner_id = owner_id
         if resource_type == 'Sequence':
-            self.chromosome = data['coordinate'][0]['chromosome']['text']
-            self.start = data['coordinate'][0]['start']
-            self.end = data['coordinate'][0]['end']
+            self.chromosome = data['chromosome']['text']
+            self.start = data['start']
+            self.end = data['end']
+        elif resource_type =='Sequencevcf':
+            self.chromosome = data['chromosome']
+            self.start = data['startPosition']
+            self.end = data['endPosition']
 
     def update(self, data):
         '''
@@ -243,7 +247,7 @@ class User(db.Model):
     salt = db.Column(db.String(500))
 
     def check_password(self, password):
-        hashed, _ = hash_password(password, self.salt)        
+        hashed, _ = hash_password(password, self.salt)
         return hashed == self.hashed_password
 
     def authorize_access(self, client, access_type, resource_types, patient_id):
@@ -258,7 +262,7 @@ class User(db.Model):
 class App(db.Model):
     '''
     A registered app -- either public or confidential in SMART-on-FHIR's term
-    Has many to one relationship with User. 
+    Has many to one relationship with User.
     '''
     __tablename__ = 'App'
     client_id = db.Column(db.String(100), primary_key=True)
@@ -266,7 +270,7 @@ class App(db.Model):
     client_secret = db.Column(db.String(100), nullable=True)
     redirect_uri = db.Column(db.String(500))
     launch_uri = db.Column(db.String(500))
-    name = db.Column(db.String(100)) 
+    name = db.Column(db.String(100))
     user_id = db.Column(db.String(500), db.ForeignKey('User.email'))
 
     user = db.relationship('User')
@@ -314,14 +318,14 @@ class Context(db.Model):
 class Client(db.Model):
     '''
     An API client(OAuth consumer)
-    
+
     This is different than an OAuth client.
     A consumer is a "bearer" of access token.
-    Every user is ONE client, but there can be multiple CONSUMER belonging to 
+    Every user is ONE client, but there can be multiple CONSUMER belonging to
     multiples user/client.
     '''
     __tablename__ = 'Client'
-    
+
     code = db.Column(db.String, primary_key=True)
     client_id = db.Column(db.String(100), db.ForeignKey('App.client_id'), nullable=True)
     # denormalized so that we can quickly determine if it's a confidential client
@@ -333,8 +337,8 @@ class Client(db.Model):
     expire_at = db.Column(db.DateTime, nullable=True)
     scope = db.Column(db.Text, nullable=True)
     context_id = db.Column(db.Integer, db.ForeignKey('Context.id'))
-    
-    context = db.relationship('Context') 
+
+    context = db.relationship('Context')
     authorizer = db.relationship('User')
 
     def __init__(self, authorizer, app, state, scope, context_id):
@@ -357,7 +361,7 @@ class Client(db.Model):
             'expires_in': 3600,
             'state': self.state,
             'scope': self.scope,
-        } 
+        }
         # add content of launch context
         ctx = Context.query.get(self.context_id)
         launch_with = json.loads(ctx.context)
