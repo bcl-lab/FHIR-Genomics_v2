@@ -1,22 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<feed xmlns="http://www.w3.org/2005/Atom">
-	<title>{{ title }}</title>
+<Bundle xmlns="http://hl7.org/fhir">
 	<id>{{ id }}</id>
+    <meta>
+        <lastupdated>{{ updated }}</lastupdated>
+    </meta>
+    <type>{{ type }}</type>
 	{% for _link in link %}
-	<link rel="{{ _link.rel }}" href="{{ _link.href }}"/>
+	<link>
+        <relation>
+            {{ _link.rel }}
+        </relation>
+        <url>
+            {{ _link.href }}
+        </url>
+    </link>
 	{% endfor %}
-	<totalResults xmlns:os="http://a9.com/-/spec/opensearch/1.1/">{{ totalResults }}</totalResults>
-	<updated>{{ updated }}</updated>	
+	<total xmlns:os="http://a9.com/-/spec/opensearch/1.1/">{{ totalResults }}</total>
+
 	{% for _entry in entry %}
-	<entry>	
-		<title>{{ _entry.title }}</title>
-		<id>{{ _entry.id }}</id>
-		<created>{{ _entry.created }}</created>
-		<updated>{{ _entry.updated }}</updated>
-		<content type="text/xml">
-			{{ _entry.content|safe }}
-		</content>	
+	<entry>
+		<fullUrl>{{ _entry.id }}</fullUrl>
+        {{ _entry.content|safe }}
 	</entry>
 	{% endfor %}
-</feed>
+</Bundle>
