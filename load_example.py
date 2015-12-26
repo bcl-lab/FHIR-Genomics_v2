@@ -208,11 +208,11 @@ def load_vcf_example(vcf_file):
             variant_id = record.ID
             variant = variant_id if variant_id is not None else 'anonymous variant'
 
-            seq_data['variationID'] = {
+            seq_data['variationID'] = [{
                                        'coding': [{
                                                    'system': 'http://www.ncbi.nlm.nih.gov/projects/SNP/snp_ref.cgi',
                                                    'code': variant_id
-                                                   }]}
+                                                   }]}]
 
             seq_data['text']['div']  = '<div>Genotype of %s is %s</div>'% (variant, reads)
 
@@ -354,9 +354,9 @@ if __name__ == '__main__':
         for example_file in os.listdir(os.path.join(BASEDIR, 'examples/vcf')):
             load_vcf_example(os.path.join(BASEDIR, 'examples/vcf', example_file))
         sequence_amount = len(sequence_ids)
-
+        '''
         for _ in xrange(50):
             patient = rand_patient()
             create_diagnosticreport(patient.get_reference())
-
+        '''
         commit_buffers(BUF)
