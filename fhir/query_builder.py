@@ -236,14 +236,14 @@ class QueryBuilder(object):
         # or implied because a resource def. that says it can only be one resource type.
         # either way, we have to figure it out.
         modifier = param_data['modifier']
-        possible_reference_types = REFERENCE_TYPES
+        possible_reference_types = REFERENCE_TYPES[resource_type][param_data['param']]
 
-        if modifier not in possible_reference_types and (
-            possible_reference_types[0] == 'Any' or
-            len(possible_reference_types) > 1):
+        if (modifier is not None and modifier not in possible_reference_types) or (
+            modifier is None and len(possible_reference_types) > 1):
             # either can't deduct type of the referenced resource
             # or the modifier supplied is an invalid type
-            raise InvalidQuery 
+            raise InvalidQuery
+
         referenced_type = (modifier
                         if modifier is not None and modifier not in NON_TYPE_MODIFIERS
                         else possible_reference_types[0]) 
@@ -252,7 +252,7 @@ class QueryBuilder(object):
         if chained_param is not None:
             # we have a chained query...
             chained_query = {chained_param: param_val}
-            # make a subquery that finds referenced resoruce that fits the description
+            # make a subquery that finds referenced resource that fits the description
             reference_query = self.build_query(referenced_type,
                                          chained_query,
                                          id_only=True)
