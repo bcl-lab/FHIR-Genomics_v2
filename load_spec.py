@@ -2,6 +2,7 @@ import re
 import os
 import sys
 import json
+import io
 # RE used to search resource profiles in FHIR's specs. directory
 #TODO support multiple types for one element
 
@@ -9,17 +10,28 @@ PROFILE_F_RE = re.compile(r'^type-(?P<datatype>\w+).profile.json$|^(?P<resource>
 WARNING = 'WARNING: this is auto generated. Change it at your risk.'
 '''
 Manual changes made to fhir_spec.py:
-    1. add definition to Observation's last elements
     2. change effective[x] to effectiveDateTime
     3. change value[x] to value, type to CodeableConcept
 '''
 
-def load_and_process_profile(profile_loc):
+#TODO: Need improvement
+def get_type_for_param(code):
     '''
-    load a profile file and prepare it as internal structure for specs. code generation
+    Get the praram type from the element type
     '''
-    with open(profile_loc) as profile_f:
-        return process_profile(json.load(profile_f))
+    if code in ['integer', 'decimal']:
+        type_for_param = 'number'
+    elif code in ['date', 'dateTime', 'instant', 'Period', 'Timing']:
+        type_for_param = 'date'
+    elif code in ['code', 'CodeableConcept', 'Coding', 'Identifier', 'ContactPoint', 'boolean']:
+        type_for_param = 'token'
+    elif 'reference' in code or 'Reference' in code:
+        type_for_param = 'reference'
+    elif 'Quantity' in code:
+        type_for_param = 'quantity'
+    else:
+        type_for_param = 'string'
+    return type_for_param
 
 
 def process_profile(profile):
@@ -27,7 +39,6 @@ def process_profile(profile):
     Process a resource profile (in FHIR's JSON format)
     as our internal structure for specs. code generation
     '''
-
     ori_elements = profile['snapshot']['element']
 
     # `refeence_types` maintains the mapping
@@ -35,45 +46,51 @@ def process_profile(profile):
     reference_types = {}
     elements = []
     for ori_element in ori_elements:
-        element = {}
-        path = ori_element['path']
-        element['path'] = path
-        definition = {}
-        definition['min'] = ori_element['min']
-        definition['max'] = ori_element['max']
-        if ori_element.get('type'):
-            definition['type'] = ori_element['type']
-            element['definition'] = definition
-            names = path.split('.')[1:]
-            name = '-'.join(names)
-            if name:
-                code = ori_element['type'][0]['code']
-                if code in ['integer', 'decimal']:
-                    type_for_praram = 'number'
-                elif code in ['date', 'dateTime', 'instant', 'Period', 'Timing']:
-                    type_for_praram = 'date'
-                elif code in ['code', 'CodeableConcept', 'Coding', 'Identifier', 'ContactPoint', 'boolean']:
-                    type_for_praram = 'token'
-                elif 'reference' in code or 'Reference' in code:
-                    type_for_praram = 'reference'
-                elif 'Quantity' in code:
-                    type_for_praram = 'quantity'
-                else:
-                    type_for_praram = 'string'
+        if ori_element.get('type') is not None:
+            element_type = ori_element['type']
+            references = []
+            for each_type in element_type:
+                path = ori_element['path']
+                type_code = each_type['code']
+                if '[x]' in path:
+                    path = path[:-3] + type_code[0].upper() + type_code[1:]
+                    print path
 
-                search_param = {'name': name, 'type': type_for_praram}
+                if type_code == 'Reference' and each_type.get('profile') is not None:
+                    reference = each_type['profile'][0]
+                    reference_type = reference.split('/')[-1]
+                    references.append(reference_type)
+                    reference_path = path
+                    reference_definition = {'min': ori_element['min'],
+                                            'max': ori_element['max'],
+                                            'type': type_code}
+                    continue
+
+                element = {'path': path}
+                definition = {'min': 0,
+                              'max': ori_element['max'],
+                              'type': type_code}
+                element['definition'] = definition
+                names = path.split('.')[1:]
+                name = '-'.join(names)
+                type_for_param = get_type_for_param(type_code)
+                search_param = {'name': name, 'type': type_for_param}
                 element['searchParam'] = search_param
 
-                types = []
                 for element_type in ori_element['type']:
                     if element_type['code'] == 'Reference':
-                        if element.get('profile'):
-                            for reference in element_type['profile']:
-                                reference_type = reference.split('/')[-1]
-                                types.append(reference_type)
-                            reference_types[search_param['name']] = types or None
+                        reference_types['name'] = None
+                elements.append(element)
 
-        elements.append(element)
+            if len(references) > 0:
+                names = reference_path.split('.')[1:]
+                name = '-'.join(names)
+                element = {'path': reference_path,
+                           'definition': reference_definition,
+                           'searchParam': {'name': name, 'type': 'reference'}
+                           }
+                reference_types[name] = references
+                elements.append(element)
 
     search_params = {}
     for element in elements:
@@ -90,8 +107,45 @@ def load_spec(spec_dir):
     (FHIR uses Profile resource to document specs.)
     '''
     specs = {}
-    resources = []
+    resources_block = []
+    resource_names = []
     reference_types = {}
+
+    for filename in ['profiles-resources.json']: #, 'profiles-others.json']:
+        filepath = os.path.join(spec_dir, filename)
+        with io.open(filepath, encoding='utf-8') as handle:
+            parsed = json.load(handle)
+            assert parsed is not None
+            assert 'resourceType' in parsed
+            assert 'Bundle' == parsed['resourceType']
+            assert 'entry' in parsed
+
+            # find resources in entries
+            for entry in parsed['entry']:
+                resource_block = entry.get('resource')
+                if resource_block is not None:
+                    assert 'resourceType' in resource_block
+                    if 'StructureDefinition' == resource_block['resourceType']:
+                        resources_block.append(resource_block)
+                else:
+                    logging.warning('There is no resource in this entry: {}'
+                        .format(entry))
+
+            for resource_block in resources_block:
+                elements, resource_search_params, resource_reference_types = process_profile(resource_block)
+                assert 'path' in elements[0]
+                name = elements[0]['path']
+                assert name is not None
+                specs[name] = {
+                    'elements': elements,
+                    'searchParams': resource_search_params
+                    }
+                resource_names.append(name)
+                reference_types[name] = resource_reference_types
+
+                print 'Loaded %s\'s profile' % name
+
+    '''
     for f in os.listdir(spec_dir):
         matched = PROFILE_F_RE.match(f)
         if matched is not None:
@@ -124,13 +178,13 @@ def load_spec(spec_dir):
 
             print 'Loaded %s\'s profile' % name
             resources.append('name')
-
+    '''
     with open('fhir/fhir_spec.py', 'w') as spec_target:
         spec_target.write("'''\n%s\n'''" % WARNING)
         spec_target.write('\n')
         spec_target.write('SPECS=' + str(specs))
         spec_target.write('\n')
-        spec_target.write('RESOURCES=set(%s)'% str(resources))
+        spec_target.write('RESOURCES=set(%s)'% str(resource_names))
         spec_target.write('\n')
         spec_target.write('REFERENCE_TYPES=' + str(reference_types))
 
