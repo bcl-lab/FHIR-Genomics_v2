@@ -178,7 +178,7 @@ class FHIRElement(object):
         self.path = spec['path']
         self.elem_types = []
         if 'type' in spec['definition']:
-            self.elem_types = [_type['code']
+            self.elem_types = [_type
                                for _type in spec['definition']['type']]
         self.min_occurs = spec['definition']['min']
         self.max_occurs = spec['definition']['max']
