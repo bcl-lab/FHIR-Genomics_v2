@@ -96,7 +96,7 @@ def rand_observations(patientId, index):
         'status': 'final'
 
     }
-    
+
     if random.random() < 0.2:
         value = {'text': 'Negative',
                  'coding': [{
@@ -306,7 +306,6 @@ def rand_conditions(patientid):
 
 
 def load_condition_from_file(path):
-    print path
     abspath = os.path.join(BASEDIR, 'examples/conditions', path)
     with open(abspath) as condition_f:
         return json.loads(condition_f.read())
@@ -323,6 +322,29 @@ def load_specimen_from_file(path):
     abspath = os.path.join(BASEDIR, 'examples/specimen', path)
     with open(abspath) as specimen_f:
         return json.loads(specimen_f.read())
+
+
+def load_from_file(path, relevant_dir):
+    abspath = os.path.join(relevant_dir, path)
+    print abspath
+    with open(abspath) as f:
+        return json.loads(f.read())
+
+
+def init(resource):
+    dir = os.path.join(BASEDIR, 'examples/' + resource)
+    load_instance = partial(load_from_file, relevant_dir=dir)
+    list_of_file = os.listdir(dir)
+    list_of_instance = []
+    for i in list_of_file:
+        if '.json' in i:
+            list_of_instance.append(i)
+    availables = map(load_instance, list_of_instance)
+    for i in availables:
+        instance = dict(i)
+        save_resource(resource, instance)
+        print 'Created %s' % resource
+        break
 
 
 def rand_date():
@@ -347,6 +369,8 @@ if __name__ == '__main__':
         init_superuser()
         init_conditions()
         init_practitioner()
+        init('Organization')
+        init('Specimen')
         patient_ids = []
         sequence_ids = []
         gene_names = []
