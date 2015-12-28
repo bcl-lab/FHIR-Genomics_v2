@@ -370,7 +370,6 @@ if __name__ == '__main__':
         init_conditions()
         init_practitioner()
         init('Organization')
-        init('Specimen')
         patient_ids = []
         sequence_ids = []
         gene_names = []
