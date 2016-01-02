@@ -1,0 +1,24 @@
+<h2>API Reference:</h2>
+
+<p>The SMART Genomics API is built on top of SMART on FHIR please see <a href="http://hl7.org/implement/standards/fhir/http.html">here</a> for more information.</p>
+
+<p>Note: The SMART Genomics API supports both XML and JSON formats. Append ?<em>format= xml|json</em> in HTTP requests to differentiate between the two.</p>
+
+<p>The following operations are defined:</p>
+
+<ul>
+	<li>read: Read the current state of the resource</li>
+	<li>update: Update an existing resource by its id (or create it if it is new)</li>
+	<li>delete: Delete a resource</li>
+	<li>history: Retrieve the update history for a particular resource</li>
+	<li>create: Create a new resource with a server assigned id</li>
+	<li>search: Search the resource type based on some filter criteria</li>
+</ul>
+
+<h3>Service Root URL</h3>
+
+<p>The Service Root URL is the address where all of the resources defined by this interface are found. The Service Root URL takes the form of:</p>
+
+<p>http://server/api/<a href="">resource<em>type</em></a></p>
+
+
