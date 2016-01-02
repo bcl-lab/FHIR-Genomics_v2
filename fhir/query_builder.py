@@ -296,10 +296,13 @@ class QueryBuilder(object):
             if param_type == 'reference':
                 pred_maker = partial(self.make_reference_pred,
                                 resource_type=resource_type)
-            else:
+            elif param_type in PRED_MAKERS:
                 pred_maker = PRED_MAKERS[param_type]
                 if pred_maker is None:
                     raise InvalidQuery
+            else:
+                pred_maker = make_string_pred
+
             # deal with FHIR's union search (e.g. `abc=x,y,z`) here
             alts = param_val.split(',')
             preds = [pred_maker(param_data, alt) for alt in alts]
