@@ -20,14 +20,17 @@ def get_type_for_param(code):
         type_for_param = 'number'
     elif code in ['date', 'dateTime', 'instant', 'Period', 'Timing']:
         type_for_param = 'date'
-    elif code in ['code', 'CodeableConcept', 'Coding', 'Identifier', 'ContactPoint', 'boolean']:
+    elif code in ['code', 'CodeableConcept', 'Coding', 'Identifier', 'ContactPoint']:
         type_for_param = 'token'
     elif 'reference' in code or 'Reference' in code:
         type_for_param = 'reference'
     elif 'Quantity' in code:
         type_for_param = 'quantity'
-    else:
+    elif 'string' in code:
         type_for_param = 'string'
+    else:
+        type_for_param = code
+
     return type_for_param
 
 
@@ -236,6 +239,19 @@ def load_spec(spec_dir):
             }
         resource_names.append(name)
         reference_types[name] = resource_reference_types
+        if len(resource_reference_types) > 1:
+            for item in resource_reference_types:
+                if item == 'name':
+                    continue
+                print resource_reference_types, item
+                if 'Observation' in resource_reference_types[item]:
+                    resource_reference_types[item] += ['observationforgenetics', 'consensus-sequence-block']
+                if 'DiagnosticReport' in resource_reference_types[item]:
+                    resource_reference_types[item] += ['reportforgenetics', 'hlaresult']
+                if 'DiagnosticOrder' in resource_reference_types[item]:
+                    resource_reference_types[item] += ['orderforgenetics']
+                if 'FamilyMemberHistory' in resource_reference_types[item]:
+                    resource_reference_types[item] += ['familymemberhistory-genetic']
 
         print 'Loaded %s\'s profile' % name
 

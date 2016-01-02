@@ -76,7 +76,7 @@ def rand_observations(patientId, index):
         text = 'Genetic analysis master panel'
 
     observation = {
-        'resourceType': 'Observation',
+        'resourceType': 'observationforgenetics',
 
         'category': {'text': 'Laboratory',
                      'coding': [{
@@ -158,9 +158,9 @@ def rand_observations(patientId, index):
                 'valueReference': sequence_ids[index]}
     extension.append(sequence)
 
-    #observation['extension'] = extension
+    observation['extension'] = extension
     print 'Created Observation-genetics instance'
-    return save_resource('Observation', observation)
+    return save_resource('observationforgenetics', observation)
 
 
 def load_vcf_example(vcf_file):
@@ -275,17 +275,21 @@ def rand_practitioner(patientId):
 
 
 def init_practitioner():
-    practitioner_dir = os.path.join(BASEDIR, 'examples/practitioner')
+    practitioner_dir = os.path.join(BASEDIR, 'examples/Practitioner')
     global available_practitioner
-    available_practitioner = map(load_practitioner_from_file, os.listdir(practitioner_dir))
+    load_instance = partial(load_practitioner_from_file, relevant_dir=practitioner_dir)
+    list_of_file = os.listdir(practitioner_dir)
+    list_of_instance = []
+    for i in list_of_file:
+        if '.json' in i:
+            list_of_instance.append(i)
+    available_practitioner = map(load_instance, list_of_instance)
 
 
-def load_practitioner_from_file(path):
-    path = 'practitioner-example.json'
-    print path
-    abspath = os.path.join(BASEDIR, 'examples/practitioner', path)
-    with open(abspath) as practitioner_f:
-        return json.loads(practitioner_f.read())
+def load_practitioner_from_file(path, relevant_dir):
+    abspath = os.path.join(relevant_dir, path)
+    with open(abspath) as f:
+        return json.loads(f.read())
 
 
 def rand_conditions(patientid):
@@ -305,7 +309,6 @@ def rand_conditions(patientid):
 
 
 def load_condition_from_file(path):
-    print path
     abspath = os.path.join(BASEDIR, 'examples/conditions', path)
     with open(abspath) as condition_f:
         return json.loads(condition_f.read())
@@ -317,13 +320,6 @@ def init_conditions():
     available_conditions = map(load_condition_from_file, os.listdir(condition_dir))
 
 
-def load_specimen_from_file(path):
-    print path
-    abspath = os.path.join(BASEDIR, 'examples/specimen', path)
-    with open(abspath) as specimen_f:
-        return json.loads(specimen_f.read())
-
-
 def rand_date():
     date = "%d-%d-%dT%d:%d:00+01:00" % (random.randint(2010, 2015),
                                         random.randint(1, 11),
@@ -331,6 +327,30 @@ def rand_date():
                                         random.randint(0, 23),
                                         random.randint(0, 59))
     return date
+
+
+def load_from_file(path, relevant_dir):
+    abspath = os.path.join(relevant_dir, path)
+    with open(abspath) as f:
+        return json.loads(f.read())
+
+
+def init(resource):
+    dir = os.path.join(BASEDIR, 'examples/' + resource)
+    ids = []
+    load_instance = partial(load_from_file, relevant_dir=dir)
+    list_of_file = os.listdir(dir)
+    list_of_instance = []
+    for i in list_of_file:
+        if '.json' in i:
+            list_of_instance.append(i)
+    availables = map(load_instance, list_of_instance)
+    for i in availables:
+        instance = dict(i)
+        resource_instance = save_resource(resource, instance)
+        print 'Created %s' % resource
+        ids.append(resource_instance.get_reference())
+    return ids
 
 
 def init_superuser():
@@ -344,8 +364,9 @@ if __name__ == '__main__':
     from server import app
     with app.app_context():
         init_superuser()
-        init_conditions()
         init_practitioner()
+        init('Organization')
+        init_conditions()
         patient_ids = []
         sequence_ids = []
         gene_names = []
@@ -353,6 +374,7 @@ if __name__ == '__main__':
         for example_file in os.listdir(os.path.join(BASEDIR, 'examples/vcf')):
             load_vcf_example(os.path.join(BASEDIR, 'examples/vcf', example_file))
         sequence_amount = len(sequence_ids)
+
 
         for _ in xrange(10):
             patient = rand_patient()
