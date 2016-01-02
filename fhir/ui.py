@@ -12,7 +12,11 @@ from util import hash_password, get_api_base
 from ttam.models import TTAMClient
 from models import db, User, Session, Resource, Access, Client, SearchParam, App, Context
 from fhir_spec import RESOURCES
+from submit import submit_web
+from fhir_spec import SPECS
+import os
 
+BASEDIR = os.path.dirname(os.path.abspath(__file__))
 ui = Blueprint('ui', __name__)
 
 UNAUTHORIZED = Response(status='403')
@@ -63,6 +67,21 @@ def create_user(form):
     db.session.add(new_user)
     db.session.commit()
     return new_user
+
+
+def create_instance(request, user, option):
+    form = request.form
+    resource_type = form['resource']
+    if option == 1:
+        file = request.files['file1']
+        file.save(BASEDIR + '/examples/' + 'example.json')
+        file_path = BASEDIR + '/examples/' + 'example.json'
+        with open(file_path) as f:
+            content = json.loads(f.read())
+    else:
+        content = json.loads(form['content'])
+
+    submit_web(resource_type, content, user)
 
 
 def rand_client_id():
@@ -187,6 +206,41 @@ def signup():
             resp = redirect('/')
             resp.set_cookie('session_id', session_id)
             return resp
+
+
+
+@ui.route('/submit', methods=['GET', 'POST'])
+def submit():
+    '''
+    handle user signup here
+    '''
+    if request.method == 'GET':
+        return render_template('submit.html')
+    elif request.method == 'POST':
+        message = None
+        resource_type = request.form['resource']
+        if resource_type not in SPECS:
+            message = "Incorrect resource/profile type or profiles not supported by FHIR Genomics server"
+            return render_template('submit.html', message=message)
+        if len(request.form['content']) == 0 and not bool(request.files['file1']):
+            message = "Please provide the instance by uploading a file or filling in the text box below"
+            return render_template('submit.html', message=message)
+        if len(request.form['content']) != 0 and bool(request.files['file1']):
+            message = "Please provide the instance by uploading a file OR filling in the text box below"
+            return render_template('submit.html', message=message)
+        if bool(request.files['file1']):
+            try:
+                create_instance(request, request.session.user, 1)
+                message = "Submit successfully"
+            except:
+                message = "Incorrect content"
+        if len(request.form['content']) != 0:
+            #try:
+            create_instance(request, request.session.user, 2)
+            message = "Submit successfully"
+            #except:
+            #message = "Incorrect content"
+        return render_template('submit.html', message=message)
 
 
 @ui.route('/create_app', methods=['GET', 'POST'])
