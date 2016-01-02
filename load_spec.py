@@ -3,16 +3,13 @@ import os
 import sys
 import json
 import io
+import copy
 # RE used to search resource profiles in FHIR's specs. directory
 #TODO support multiple types for one element
 
 PROFILE_F_RE = re.compile(r'^type-(?P<datatype>\w+).profile.json$|^(?P<resource>\w+).profile.json$')
 WARNING = 'WARNING: this is auto generated. Change it at your risk.'
-'''
-Manual changes made to fhir_spec.py:
-    2. change effective[x] to effectiveDateTime
-    3. change value[x] to value, type to CodeableConcept
-'''
+
 
 #TODO: Need improvement
 def get_type_for_param(code):
@@ -34,6 +31,39 @@ def get_type_for_param(code):
     return type_for_param
 
 
+#TODO: need support complex element as extensions
+def find_extension_attri(filename):
+    filepath = os.path.join(spec_dir, 'extension-' + filename + '.json')
+    with io.open(filepath, encoding='utf-8') as handle:
+        parsed = json.load(handle)
+        ori_elements = parsed['differential']['element']
+        for ori_element in ori_elements:
+            if ori_element['path'] == 'Extension.value[x]':
+                if ori_element.get('type') is not None:
+                    return ori_element['type'], parsed['url']
+        return None, parsed['url']
+
+
+def find_complex_extension_attri(filename, base_name):
+    filepath = os.path.join(spec_dir, 'extension-' + filename + '.json')
+    names = []
+    search_names = []
+    types = []
+    with io.open(filepath, encoding='utf-8') as handle:
+        parsed = json.load(handle)
+        ori_elements = parsed['snapshot']['element']
+        for i in range(0, len(ori_elements)):
+            ori_element = ori_elements[i]
+            if ori_element['path'] == 'Extension.extension.url':
+                name = ori_element['fixedUri']
+                type = copy.copy(ori_elements[i+1]['type'])
+                names.append(name)
+                search_names.append(base_name+'-'+name)
+                types.append(type)
+        print types
+        return names, search_names, types
+
+
 def process_profile(profile):
     '''
     Process a resource profile (in FHIR's JSON format)
@@ -45,8 +75,47 @@ def process_profile(profile):
     # between a search parameter of type ResourceReference and possible resource types
     reference_types = {}
     elements = []
+    extensions = []
+    complex_extensions = {}
+    sub_extensions = {}
     for ori_element in ori_elements:
-        if ori_element.get('type') is not None:
+        if '.extension' in ori_element['path'] and ori_element.get('name') is not None:
+            assert ori_element['type'][0]['code'] == 'Extension'
+            assert ori_element['type'][0]['profile'] is not None
+            extension_full_name = ori_element['type'][0]['profile'][0].split('/')[-1]
+            extension_name = ori_element['name']
+            extension_type, extension_url = find_extension_attri(extension_full_name)
+            print "add extension: " + extension_name
+            if extension_type:
+                extension_type_code = extension_type[0].get('code')
+                if extension_type_code == 'Reference':
+                    references = []
+                    for i in extension_type:
+                        reference_type = i['profile'][0].split('/')[-1]
+                        references.append(reference_type)
+                    reference_types[extension_name] = references
+                extensions.append({'name': extension_name,
+                                   'type': extension_type_code,
+                                   'url': extension_url})
+            else:
+                complex_extensions[extension_url] = {}
+                complex_extension_names, complex_search_names, complex_extension_types = find_complex_extension_attri(extension_full_name, ori_element.get('name'))
+                complex_extension_type_codes = []
+                for extension_type in complex_extension_types:
+                    extension_type_code = extension_type[0].get('code')
+                    complex_extension_type_codes.append(extension_type_code)
+                    if extension_type_code == 'Reference':
+                        references = []
+                        for i in extension_type:
+                            reference_type = i['profile'][0].split('/')[-1]
+                            references.append(reference_type)
+
+                for i in range(0, len(complex_extension_names)):
+                    complex_extensions[extension_url][complex_extension_names[i]] = [complex_search_names[i], complex_extension_type_codes[i]]
+                    sub_extensions[complex_search_names[i]] = get_type_for_param(complex_extension_type_codes[i])
+                print "add a complex extension: %s" % extension_url
+
+        elif ori_element.get('type') is not None:
             element_type = ori_element['type']
             references = []
             for each_type in element_type:
@@ -54,7 +123,6 @@ def process_profile(profile):
                 type_code = each_type['code']
                 if '[x]' in path:
                     path = path[:-3] + type_code[0].upper() + type_code[1:]
-                    print path
 
                 if type_code == 'Reference' and each_type.get('profile') is not None:
                     reference = each_type['profile'][0]
@@ -93,12 +161,23 @@ def process_profile(profile):
                 elements.append(element)
 
     search_params = {}
+    extensions_map = {}
     for element in elements:
         if element.get('searchParam'):
             param_name = element['searchParam']['name']
             param_type = element['searchParam']['type']
             search_params[param_name] = param_type
-    return elements, search_params, reference_types
+    for extension in extensions:
+        extension_type = extension['type']
+        if extension_type != 'CodeableConcept':
+            extension_type = extension_type[0].lower() + extension_type[1:]
+        search_params[extension['name']] = get_type_for_param(extension_type)
+        extensions_map[extension['url']] = {'name': extension['name'],
+                                            'type': extension['type']}
+    for extension_search_name in sub_extensions:
+        search_params[extension_search_name] = sub_extensions[extension_search_name]
+
+    return elements, search_params, reference_types, extensions_map, complex_extensions
 
 
 def load_spec(spec_dir):
@@ -131,54 +210,35 @@ def load_spec(spec_dir):
                     logging.warning('There is no resource in this entry: {}'
                         .format(entry))
 
-            for resource_block in resources_block:
-                elements, resource_search_params, resource_reference_types = process_profile(resource_block)
-                assert 'path' in elements[0]
-                name = elements[0]['path']
-                assert name is not None
-                specs[name] = {
-                    'elements': elements,
-                    'searchParams': resource_search_params
-                    }
-                resource_names.append(name)
-                reference_types[name] = resource_reference_types
+    # load profiles
+    for filename in ['observationforgenetics.profile.json', 'consensus-sequence-block.profile.json',
+                     'reportforgenetics.profile.json', 'orderforgenetics.profile.json',
+                     'hlaresult.profile.json', 'familymemberhistory-genetic.profile.json']:
+        filepath = os.path.join(spec_dir, filename)
+        with io.open(filepath, encoding='utf-8') as handle:
+            parsed = json.load(handle)
+            assert parsed is not None
+            assert 'resourceType' in parsed
+            assert 'StructureDefinition' == parsed['resourceType']
+            resource_block = dict(parsed)
+            resources_block.append(resource_block)
 
-                print 'Loaded %s\'s profile' % name
-
-    '''
-    for f in os.listdir(spec_dir):
-        matched = PROFILE_F_RE.match(f)
-        if matched is not None:
-            profile_loc = os.path.join(spec_dir, f)
-            elements, resource_search_params, resource_reference_types = load_and_process_profile(
-                profile_loc)
-            name = elements[0]['path']
-            # manually add assessed-condition into list of serach params
-            if name == 'Observation':
-                resource_search_params['Sequence'] = 'reference'
-                resource_reference_types['Sequence'] = ['Sequence']
-                resource_search_params['Source'] = 'token'
-                resource_search_params['VariationHGVS'] = 'token'
-                resource_search_params['VariationType'] = 'token'
-                resource_search_params['AminoAcidVariation'] = 'token'
-                resource_search_params['Region'] = 'token'
-                resource_search_params['Gene'] = 'token'
-            if name == 'DiagnosticReport':
-                resource_search_params['AssessedCondition'] = 'reference'
-                resource_reference_types['AssessedCondition'] = ['Condition']
-
-            specs[name] = {
-                'elements': elements,
-                'searchParams': resource_search_params
+    for resource_block in resources_block:
+        elements, resource_search_params, resource_reference_types, extensions_map, complex_extensions = process_profile(resource_block)
+        assert 'id' in resource_block
+        name = resource_block['id']
+        assert name is not None
+        specs[name] = {
+            'elements': elements,
+            'searchParams': resource_search_params,
+            'extensionsMap': extensions_map,
+            'complexExtensions': complex_extensions
             }
+        resource_names.append(name)
+        reference_types[name] = resource_reference_types
 
-            if matched.group('resource') is not None:
-                resources.append(name)
-                reference_types[name] = resource_reference_types
+        print 'Loaded %s\'s profile' % name
 
-            print 'Loaded %s\'s profile' % name
-            resources.append('name')
-    '''
     with open('fhir/fhir_spec.py', 'w') as spec_target:
         spec_target.write("'''\n%s\n'''" % WARNING)
         spec_target.write('\n')
