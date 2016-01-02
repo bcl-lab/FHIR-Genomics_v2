@@ -1,0 +1,50 @@
+{
+    "resourceType": "hlaresult",
+    "extension": [
+                  {
+                  "url": "http://hl7.org/fhir/StructureDefinition/hla-genotyping-resultsAlleleAsignmentDate",
+                  "valueDate": "2014-10-22"
+                  },
+                  {
+                  "extension": [
+                                {
+                                "url": "text",
+                                "valueString": "HLA-A*01:01:01+HLA-A*24:02:01"
+                                }
+                                ],
+                  "url": "http://hl7.org/fhir/StructureDefinition/hla-genotyping-resultsGlstring"
+                  },
+                  {
+                  "url": "http://hl7.org/fhir/StructureDefinition/hla-genotyping-resultsConsensusSequenceBlock",
+                  "valueReference": {
+                  "reference": "Observation/consensus-sequence-block-example-1"
+                  }
+                  },
+                  {
+                  "url": "http://hl7.org/fhir/StructureDefinition/hla-genotyping-resultsConsensusSequenceBlock",
+                  "valueReference": {
+                  "reference": "Observation/consensus-sequence-block-example-2"
+                  }
+                  }
+                  ],
+    "status": "final",
+    "code": {
+        "text": "HLA genotyping results"
+    },
+    "subject": {
+        "reference": "Patient/genetics-example2",
+        "display": "Molecular Lab Patient ID: HOSP-23456"
+    },
+    "effectiveDateTime": "2015-05-26T15:30:10+01:00",
+    "issued": "2015-05-26T15:30:10+01:00",
+    "performer": {
+        "reference": "Practitioner/genetics-example2",
+        "display": "Molecular Diagnostic Laboratory"
+    },
+    "specimen": [
+                 {
+                 "reference": "Specimen/genetics-example2",
+                 "display": "Molecular Specimen ID: MLD45-Z4-1234"
+                 }
+                 ]
+}

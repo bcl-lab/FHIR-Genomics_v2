@@ -1,0 +1,60 @@
+{
+    "resourceType": "reportforgenetics",
+    "extension": [
+                  {
+                  "url": "http://hl7.org/fhir/StructureDefinition/DiagnosticReport-geneticsFamilyMemberHistory",
+                  "valueReference": {
+                  "reference": "FamilyMemberHistory/dg1"
+                  }
+                  }
+                  ],
+    "status": "final",
+    "category": {
+        "coding": [
+                   {
+                   "system": "http://snomed.info/sct",
+                   "code": "15220000",
+                   "display": "Laboratory test"
+                   },
+                   {
+                   "system": "http://hl7.org/fhir/v2/0074",
+                   "code": "LAB"
+                   }
+                   ]
+    },
+    "code": {
+        "coding": [
+                   {
+                   "system": "http://loinc.org",
+                   "code": "55233-1",
+                   "display": "Genetic analysis master panel"
+                   }
+                   ]
+    },
+    "subject": {
+        "reference": "Patient/example",
+        "display": "Peter James Chalmers(MRN: 12345)"
+    },
+    "effectiveDateTime": "2015-05-26T15:30:10+01:00",
+    "issued": "2014-05-16T10:28:00+01:00",
+    "performer": {
+        "reference": "Practitioner/genetics-example2",
+        "display": "Molecular Diagnostic Laboratory"
+    },
+    "specimen": [
+                 {
+                 "reference": "Specimen/genetics-example2",
+                 "display": "Molecular Specimen ID: MLD45-Z4-1234"
+                 }
+                 ],
+    "result": [
+               {
+               "reference": "Observation/ob-genetics-3-1",
+               "display": "Genetic analysis for BRAC -1"
+               },
+               {
+               "reference": "Observation/ob-genetics-3-2",
+               "display": "Genetic analysis for BRAC -2"
+               }
+               ]
+}
