@@ -76,7 +76,7 @@ def rand_observations(patientId, index):
         text = 'Genetic analysis master panel'
 
     observation = {
-        'resourceType': 'Observation',
+        'resourceType': 'observationforgenetics',
 
         'category': {'text': 'Laboratory',
                      'coding': [{
@@ -96,22 +96,22 @@ def rand_observations(patientId, index):
         'status': 'final'
 
     }
-
+    
     if random.random() < 0.2:
-        value = {'text': 'Negative',
+        valueCodeableConcept = {'text': 'Negative',
                  'coding': [{
                            'system': "http://snomed.info/sct",
                            'code': "260385009"
                             }]
                  }
     else:
-        value = {'text': 'Positive',
+        valueCodeableConcept = {'text': 'Positive',
                  'coding': [{
                             'system': "http://snomed.info/sct",
                             'code': "10828004"
                             }]
                  }
-    observation['value'] = value
+    observation['valueCodeableConcept'] = valueCodeableConcept
 
     extension = []
     # get source randomly
@@ -160,7 +160,7 @@ def rand_observations(patientId, index):
 
     observation['extension'] = extension
     print 'Created Observation-genetics instance'
-    return save_resource('Observation', observation)
+    return save_resource('observationforgenetics', observation)
 
 
 def load_vcf_example(vcf_file):
@@ -245,8 +245,7 @@ def create_diagnosticreport(patientId):
             results.append(rand_observations(patientId, index).get_reference())
 
     data = {
-        'extension': extension,
-        'resourceType': 'DiagnosticReport',
+        'resourceType': 'reportforgenetics',
         'status': 'final',
         'code': {'text': 'Gene mutation analysis'},
         'subject': patientId,
@@ -256,7 +255,7 @@ def create_diagnosticreport(patientId):
         'result': results
         }
 
-    return save_resource('DiagnosticReport', data)
+    return save_resource('reportforgenetics', data)
 
 
 def rand_practitioner(patientId):
@@ -276,17 +275,21 @@ def rand_practitioner(patientId):
 
 
 def init_practitioner():
-    practitioner_dir = os.path.join(BASEDIR, 'examples/practitioner')
+    practitioner_dir = os.path.join(BASEDIR, 'examples/Practitioner')
     global available_practitioner
-    available_practitioner = map(load_practitioner_from_file, os.listdir(practitioner_dir))
+    load_instance = partial(load_practitioner_from_file, relevant_dir=practitioner_dir)
+    list_of_file = os.listdir(practitioner_dir)
+    list_of_instance = []
+    for i in list_of_file:
+        if '.json' in i:
+            list_of_instance.append(i)
+    available_practitioner = map(load_instance, list_of_instance)
 
 
-def load_practitioner_from_file(path):
-    path = 'practitioner-example.json'
-    print path
-    abspath = os.path.join(BASEDIR, 'examples/practitioner', path)
-    with open(abspath) as practitioner_f:
-        return json.loads(practitioner_f.read())
+def load_practitioner_from_file(path, relevant_dir):
+    abspath = os.path.join(relevant_dir, path)
+    with open(abspath) as f:
+        return json.loads(f.read())
 
 
 def rand_conditions(patientid):
@@ -317,22 +320,24 @@ def init_conditions():
     available_conditions = map(load_condition_from_file, os.listdir(condition_dir))
 
 
-def load_specimen_from_file(path):
-    print path
-    abspath = os.path.join(BASEDIR, 'examples/specimen', path)
-    with open(abspath) as specimen_f:
-        return json.loads(specimen_f.read())
+def rand_date():
+    date = "%d-%d-%dT%d:%d:00+01:00" % (random.randint(2010, 2015),
+                                        random.randint(1, 11),
+                                        random.randint(1, 27),
+                                        random.randint(0, 23),
+                                        random.randint(0, 59))
+    return date
 
 
 def load_from_file(path, relevant_dir):
     abspath = os.path.join(relevant_dir, path)
-    print abspath
     with open(abspath) as f:
         return json.loads(f.read())
 
 
 def init(resource):
     dir = os.path.join(BASEDIR, 'examples/' + resource)
+    ids = []
     load_instance = partial(load_from_file, relevant_dir=dir)
     list_of_file = os.listdir(dir)
     list_of_instance = []
@@ -342,18 +347,10 @@ def init(resource):
     availables = map(load_instance, list_of_instance)
     for i in availables:
         instance = dict(i)
-        save_resource(resource, instance)
+        resource_instance = save_resource(resource, instance)
         print 'Created %s' % resource
-        break
-
-
-def rand_date():
-    date = "%d-%d-%dT%d:%d:00+01:00" % (random.randint(2010, 2015),
-                                        random.randint(1, 11),
-                                        random.randint(1, 27),
-                                        random.randint(0, 23),
-                                        random.randint(0, 59))
-    return date
+        ids.append(resource_instance.get_reference())
+    return ids
 
 
 def init_superuser():
@@ -367,9 +364,9 @@ if __name__ == '__main__':
     from server import app
     with app.app_context():
         init_superuser()
-        init_conditions()
         init_practitioner()
         init('Organization')
+        init_conditions()
         patient_ids = []
         sequence_ids = []
         gene_names = []
@@ -377,9 +374,10 @@ if __name__ == '__main__':
         for example_file in os.listdir(os.path.join(BASEDIR, 'examples/vcf')):
             load_vcf_example(os.path.join(BASEDIR, 'examples/vcf', example_file))
         sequence_amount = len(sequence_ids)
-        '''
-        for _ in xrange(50):
+
+
+        for _ in xrange(10):
             patient = rand_patient()
             create_diagnosticreport(patient.get_reference())
-        '''
+
         commit_buffers(BUF)
