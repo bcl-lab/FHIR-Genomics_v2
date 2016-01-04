@@ -41,3 +41,10 @@ Reference API server of SMART Genomics
 	```
 	$ python server.py clear
 	```
+
+If you find this useful, please cite the following paper:
+Alterovitz G, Warner J, Zhang P, Chen Y, Ullman-Cullere M, Kreda D,
+Kohane IS. SMART on FHIR Genomics: facilitating standardized
+clinico-genomic apps. Journal of the American Medical Informatics Association:
+JAMIA. 2015;22(6):1173-8. doi: 10.1093/jamia/ocv045. PubMed PMID: 26198304.
+http://www.ncbi.nlm.nih.gov/pubmed/26198304
