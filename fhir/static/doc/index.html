@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<link rel="stylesheet" type="text/css" href="css/style.css" />
+		<title>Guidance</title>
+	</head>
+<body>
+<h2>Guidance </h2>
+
+<h3>Overview</h3>
+
+<p>The server will be running at <code>localhost</code> at <code>port 2048</code>.</p>
+
+<p>The reload option clears the database and loads sample data. So do not use <code>reload</code> if you have something that you want to keep in the database.</p>
+
+<p>The latest source code for this server can be found at:</p>
+
+<p><a href="https://github.com/chaiery/FHIR-Genomics-2">https://github.com/chaiery/FHIR-Genomics-2</a></p>
+
+<p>All code files mentioned below can also be found in this address.</p>
+
+<h3>Create a new database</h3>
+
+<p>First, clear the database:</p>
+
+<p><code>$ python server.py clear
+</code></p>
+
+<p>Then, you can write scripts to upload your own data. We provide a sample script - <code>load_example.py</code> to create and add sequence instances from vcf files and other instances from random data and local json files - observationforgenetics (Genetics profile for Observation), reportforgenetics (Genetics profile for DiagnosticReport), orderforgenetics (Genetics profile for DiagnosticOrder).</p>
+
+<h3>Submit data to an existing database</h3>
+
+<p>There are many ways to add new data.</p>
+
+<ol>
+	<li>Go to <code>http://localhost:2048/</code> in your browser and login. Then click ‘Submit’ button on the menu bar. To submit data, you need to provide the resource/profile type of the instances you want to add and upload a json file or fill in the text box.</li>
+	<li>We provide a sample script - <code>submit.py.</code> It can help add new data under the user: name@mail.com</li>
+	<li><p> We provide API for apps to submit add: </p>
+
+		<p><code>POST [base]/[type]</code></p>
+
+		<p>Here is a sample function used in an app to submit sequence instances:</p></li>
+</ol>
+
+<pre><code>&#39;def api_call(api_endpoint):
+	access_token = request.cookies[&#39;access_token&#39;]
+	auth_header = {&#39;Authorization&#39;: &#39;Bearer %s&#39;% access_token}
+	return requests.get(&#39;%s%s&#39;% (API_BASE, api_endpoint), headers=auth_header)
+</code></pre>
+
+<p>Entire code for this app can be found at:</p>
+
+<p><a href="https://github.com/chaiery/ga2fhirapp.py">https://github.com/chaiery/ga2fhirapp.py</a></p>
+
+<h3>API Reference:</h3>
+
+<p>The SMART Genomics API is built on top of SMART on FHIR please see <a href="http://hl7.org/implement/standards/fhir/http.html">here</a> for more information.</p>
+
+<p>Note: The SMART Genomics API supports both XML and JSON formats. Append <code>?_format= xml|json</code> in HTTP requests to differentiate between the two.</p>
+
+<p>The following operations are defined:</p>
+
+<ul>
+	<li>read: Read the current state of the resource</li>
+	<li>update: Update an existing resource by its id (or create it if it is new)</li>
+	<li>delete: Delete a resource</li>
+	<li>history: Retrieve the update history for a particular resource</li>
+	<li>create: Create a new resource with a server assigned id</li>
+	<li>search: Search the resource type based on some filter criteria</li>
+</ul>
+
+<p>The Service Root URL is the address where all of the resources defined by this interface are found. The Service Root URL takes the form of:</p>
+
+<p><code>http://server/api/resourceType
+</code></p>
+
+<h4>Read</h4>
+
+<p><code>GET [base]/[type]/[id]</code></p>
+
+<p>For example:</p>
+
+<p><code>http://localhost:2048/api/Sequence/[id] </code></p>
+
+<h4>Search</h4>
+
+<p><code>GET [base]/[type]{?[parameters]}</code></p>
+
+<p>For example:</p>
+
+<p><code>[http://localhost:2048/api/Sequence?variationID=[variationID]] </code></p>
+
+<h3>Authentication</h3>
+
+<h4>Registration</h4>
+
+<ul>
+	<li>Go to <code>http://localhost:2048</code> in your browser, register an account and login. Then you can register an application. </li>
+</ul>
+
+<p>For example:</p>
+
+<pre><code>#Application Registration
+Application name: Genomics-Advisor
+Redirect URL:  http://localhost:8000/recv_redirect
+Launch URL: http://localhost:8000/fhir-app/launch.html
+</code></pre>
+
+<ul>
+	<li> Then you will have an <code>App id</code> and an <code>App secret</code> (They correspond to <strong>client<em>id</em></strong> and <strong>client<em>secret</em></strong> in OAuth2) on your app dashboard</li>
+</ul>
+
+<h4>How to get access to the API using OAuth2</h4>
+
+<ul>
+	<li>redirect your user to the <strong>authorization</strong> page with following parameters </li>
+</ul>
+
+<p>For example, you may be asked for permission to <code>read</code> all of the user&#39;s <code>Patient</code> and <code>Sequence</code> resources.</p>
+
+<p>Configuration:</p>
+
+<pre><code>client_id: [your client id]
+response_type: &quot;code&quot;
+scope: &quot;user/Sequence.read user/Patient.read&quot; // space-delimited list of scope
+redirect_uri: [redirect uri you put on your app dashboard]
+state: [optional, i.e. you whatever you want here]client_id: [your client id]
+</code></pre>
+
+<p>In the case of using the local API server, the url of the <strong>authorization page</strong> is <code>http://localhost:2048/auth/authorize</code>.</p>
+
+<ul>
+	<li>If everything goes well, the user will be redirected to your <strong>redirect uri</strong> with following parameters:</li>
+</ul>
+
+<pre><code>code: [authorization code you will be using to exchange for access token]
+state: [this will be the `state` you put in last step]
+</code></pre>
+
+<ul>
+	<li>Now you can exchange your <code>code</code> with a <code>access token</code>, which you can use to access the API.</li>
+	<li>Simply make a <code>POST</code> request to the server, with following data,</li>
+</ul>
+
+<pre><code>grant_type: &quot;authorization_code&quot;,
+client_id: [client id],
+client_secret: [client secret],
+redirect_uri: [redirect uri],
+code: [code you obatined in last step]
+</code></pre>
+
+<p>In the case of using the local API server, the url is <code>http://localhost:2048/auth/token</code></p>
+
+<ul>
+	<li>You will then get this JSON as a response:</li>
+</ul>
+
+<pre><code>{
+&#39;access_token&#39;: [access token],
+&#39;expires_in&#39;: 3600,
+&#39;token_type&#39;: &#39;bearer&#39;
+}
+</code></pre>
+
+<ul>
+	<li>Now that you have <code>access token</code>, you can make an authorized request to the API by using this header in your HTTP request.</li>
+</ul>
+
+<pre><code>Authorization: Bearer [your accesstoken]
+</code></pre>
+
+</body>
+</html>
+

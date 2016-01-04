@@ -143,6 +143,7 @@ class FHIRBundle(object):
             relative_resource_url = resource.get_url(self.version_specific)
             resource_url = urljoin(self.api_base, relative_resource_url)
             resource_content = json.loads(resource.data)
+            resource_type = relative_resource_url.split('/')[0]
             if self.data_format == 'xml':
                 resource_content = json_to_xml(resource_content)
 
@@ -171,9 +172,8 @@ class FHIRBundle(object):
         bundle['link'] = links
         bundle['totalResults'] = self.resource_count
         bundle['updated'] = self.update_time
-        bundle['title'] = BUNDLE_TITLE
         bundle['id'] = self.request_url
-        bundle['resourceType'] = 'Bundle'
+        bundle['type'] = 'searchset'
         return bundle
 
     def as_response(self):

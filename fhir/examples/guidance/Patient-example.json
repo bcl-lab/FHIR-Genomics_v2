@@ -1,0 +1,49 @@
+{
+  "resourceType": "Patient",
+  "text": {
+    "status": "generated",
+    "div": "<div>\n      \n      <p>Patient Donald DUCK @ Acme Healthcare, Inc. MR = 654321</p>\n    \n    </div>"
+  },
+  "identifier": [
+    {
+      "use": "usual",
+      "type": {
+        "coding": [
+          {
+            "system": "http://hl7.org/fhir/v2/0203",
+            "code": "MR"
+          }
+        ]
+      },
+      "system": "urn:oid:0.1.2.3.4.5.6.7",
+      "value": "654321"
+    }
+  ],
+  "active": true,
+  "name": [
+    {
+      "use": "official",
+      "family": [
+        "Donald"
+      ],
+      "given": [
+        "Duck"
+      ],
+      "text": "Duck Donald"
+    }
+  ],
+  "gender": "male",
+  "contact": [
+    {
+      "relationship": [
+        {
+          "coding": [
+            {
+              "system": "http://hl7.org/fhir/patient-contact-relationship",
+              "code": "owner"
+            }
+          ]
+        }
+      ]
+    }]
+}

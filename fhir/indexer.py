@@ -66,6 +66,17 @@ def index_token(index, element):
     return index
 
 
+def index_other_text(index, element):
+    text_elements = []
+    try:
+        if 'text' in element:
+            text_elements.append(element['text'])
+        index['text'] = '::%s::' % ('::'.join(text_elements), )
+    except:
+        print 1
+    return index
+
+
 def index_reference(index, element, owner_id, g):
     '''
     index a reference
@@ -160,8 +171,10 @@ def index_resource(resource, search_elements, g=g):
             for element in elements:
                 if args['param_type'] == 'reference':
                     index_func = partial(index_reference, owner_id=resource.owner_id, g=g)
-                else:
+                elif args['param_type'] in SEARCH_INDEX_FUNCS:
                     index_func = SEARCH_INDEX_FUNCS[args['param_type']]
+                else:
+                    index_func = index_other_text
                 if index_func is None:
                     continue
                 search_index = index_func(dict(args), element) 

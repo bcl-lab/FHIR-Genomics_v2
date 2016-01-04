@@ -38,7 +38,7 @@ HOST = 'localhost:2048'
 # in this zipped directory http://www.hl7.org/fhir/fhir-spec.zip.
 # NOTE: You SHOULDN'T be concerned about this if you don't wish to load different
 # version of FHIR than the one we are using (FHIR v0.0.82).
-FHIR_SPEC_DIR = '/Users/apple/Downloads/fhir-spec/site'
+FHIR_SPEC_DIR = '/Users/apple/Documents/fhir-spec/site'
 # the example resource parser right now is still pretty slow
 # also, due to the fact that SQLAlchemy is not very good at bulk insert,
 # if the vcf file is too large, the example loader is gonna run for decades

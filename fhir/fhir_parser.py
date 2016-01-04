@@ -2,6 +2,7 @@
 import re
 import os
 import json
+from load_spec import get_type_for_param
 from fhir_spec import SPECS
 
 # TODO: support parsing path wild card path
@@ -43,54 +44,36 @@ FHIR_PRIMITIVE_INIT = {
     'integer': int
 }
 
-PRE_EXTENSION_OBS_URL = 'http://hl7.org/fhir/StructureDefinition/observation-genetics'
-OBS_GENETICS_EXTENSION_URL = ['http://hl7.org/fhir/StructureDefinition/observation-geneticsSequence',
-                              'http://hl7.org/fhir/StructureDefinition/observation-geneticsSource',
-                              'http://hl7.org/fhir/StructureDefinition/observation-geneticsGene',
-                              'http://hl7.org/fhir/StructureDefinition/observation-geneticsRegion',
-                              'http://hl7.org/fhir/StructureDefinition/observation-geneticsVariationHGVS',
-                              'http://hl7.org/fhir/StructureDefinition/observation-geneticsVariationType',
-                              'http://hl7.org/fhir/StructureDefinition/observation-geneticsAminoAcidVariation']
-REPORT_GENETICS_EXTENSION_URL = ['http://hl7.org/fhir/StructureDefinition/diagnosticreport-geneticsAssessedCondition']
 
-
-def get_observation_genetics_extensions(observation):
-    '''
-    extract assesed condition from a Observation extended with "GeneticObservation"
-    '''
+def get_extensions(datatype, data):
     results = {}
-    for extension in observation.get('extension', []):
-        if extension.get('url') == OBS_GENETICS_EXTENSION_URL[0]:
-            ob_sequence = extension.get('valueReference')
-            results['Sequence'] = ob_sequence
-        elif extension.get('url') == OBS_GENETICS_EXTENSION_URL[1]:
-            ob_source = extension.get('valueCodeableConcept')
-            results['Source'] = ob_source
-        elif extension.get('url') == OBS_GENETICS_EXTENSION_URL[2]:
-            ob_gene = extension.get('valueCodeableConcept')
-            results['Gene'] = ob_gene
-        elif extension.get('url') == OBS_GENETICS_EXTENSION_URL[3]:
-            ob_region = extension.get('valueCodeableConcept')
-            results['Region'] = ob_region
-        elif extension.get('url') == OBS_GENETICS_EXTENSION_URL[4]:
-            ob_variationhgvs = extension.get('valueCodeableConcept')
-            results['VariationHGVS'] = ob_variationhgvs
-        elif extension.get('url') == OBS_GENETICS_EXTENSION_URL[5]:
-            ob_variationtype = extension.get('valueCodeableConcept')
-            results['VariationType'] = ob_variationtype
-        elif extension.get('url') == OBS_GENETICS_EXTENSION_URL[6]:
-            ob_aminoacidvariation = extension.get('valueCodeableConcept')
-            results['AminoAcidVariation'] = ob_aminoacidvariation
-
+    extensions_map = SPECS[datatype]['extensionsMap']
+    extensions_in_data = data.get('extension')
+    for extension in extensions_in_data:
+        url = extension.get('url')
+        if extensions_map.get(url):
+            extension_name = extensions_map[url]['name']
+            extension_type = extensions_map[url]['type']
+            results[extension_name] = {'data': extension.get('value' + extension_type[0].upper() + extension_type[1:]),
+                                       'type': extension_type}
     return results
 
 
-def get_report_genetics_extensions(report):
+def get_complex_extensions(datatype, data):
     results = {}
-    for extension in report.get('extension', []):
-        if extension.get('url') == REPORT_GENETICS_EXTENSION_URL[0]:
-            condition = extension.get('valueReference')
-            results['AssessedCondition'] = condition
+    complex_extensions = SPECS[datatype]['complexExtensions']
+    extensions_in_data = data.get('extension')
+    for extension in extensions_in_data:
+        url = extension.get('url')
+        if url in complex_extensions:
+            sub_extensions_in_data = extension.get('extension')
+            for i in sub_extensions_in_data:
+                extension_name = i['url']
+                extension_search_name = complex_extensions[url][extension_name][0]
+                extension_type = complex_extensions[url][extension_name][1]
+                results[extension_search_name] = {'data': i.get('value' + extension_type[0].upper()
+                                                                + extension_type[1:]),
+                                                  'type': extension_type}
     return results
 
 
@@ -112,42 +95,26 @@ def parse(datatype, data, correctible):
 
         if len(elements) != len(search_elements):
             return False, None
-        search_elements = filter(lambda x: x.get('spec') is not None,
+        search_elements = filter(lambda x: x.get('spec') is not None and x.get('spec').get('name')!='extension',
                         search_elements)
-
-    # extract element for SMART Genomics' custom search param - assesed-condition
-
-    if datatype == 'Observation':
-        results = get_observation_genetics_extensions(data)
+        #print a
+    if datatype in ['observationforgenetics', 'consensus-sequence-block', 'reportforgenetics', 'orderforgenetics'
+                    'hlaresult', 'familymemberhistory-genetic']:
+        results_1 = get_extensions(datatype, data)
+        results_2 = get_complex_extensions(datatype, data)
+        results = dict(results_1.items() + results_2.items())
         for i in results:
-            spec = {}
-            if i in ['Gene', 'Source', 'VariationHGVS', 'VariationType', 'AminoAcidVariation', 'Region']:
-                spec['type'] = 'token'
-            elif i in ['Sequence']:
-                spec['type'] = 'reference'
+            i_type = results[i]['type']
+            if i_type != 'CodeableConcept':
+                i_type = i_type[0].lower() + i_type[1:]
+            i_type = get_type_for_param(i_type)
 
-            spec['name'] = i
-
-            customed_search_param = {
-                'spec': spec,
-                'elements': [results[i]]
+            extension_search_param = {
+                'spec': {'name': i,
+                         'type': i_type},
+                'elements': [results[i]['data']]
             }
-            search_elements.append(customed_search_param)
-
-    if datatype == 'DiagnosticReport':
-        results = get_report_genetics_extensions(data)
-        for i in results:
-            spec = {}
-            if i in ['AssessedCondition']:
-                spec['type'] = 'reference'
-
-            spec['name'] = i
-
-            customed_search_param = {
-                'spec': spec,
-                'elements': [results[i]]
-            }
-            search_elements.append(customed_search_param)
+            search_elements.append(extension_search_param)
     return True, search_elements
 
 
@@ -178,7 +145,7 @@ class FHIRElement(object):
         self.path = spec['path']
         self.elem_types = []
         if 'type' in spec['definition']:
-            self.elem_types = [_type['code']
+            self.elem_types = [_type
                                for _type in spec['definition']['type']]
         self.min_occurs = spec['definition']['min']
         self.max_occurs = spec['definition']['max']
