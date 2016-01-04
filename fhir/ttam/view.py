@@ -10,6 +10,21 @@ ttam.before_request(get_session)
 
 NOT_ALLOWED = Response(status='405')
 
+@ttam.route('/')
+def acquire_client():
+    '''
+    Get the client from database
+    '''
+    try:
+        TTAM_client = TTAMClient.query.get(request.session.user.email)
+    except:
+        TTAM_client = None
+
+    if not TTAM_client:
+        return redirect('/ttam/import')
+    return
+
+
 @ttam.route('/import')
 @require_login
 def import_from_ttam():
@@ -41,7 +56,7 @@ def recv_ttam_auth_code():
     ttam_client = TTAMClient(code, request.session.user.email, ttam_config)
     db.session.add(ttam_client)
     db.session.commit()
-    return redirect('/') 
+    return ttam_client
 
 
 @ttam.route('/clear')
