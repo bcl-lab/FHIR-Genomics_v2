@@ -12,6 +12,7 @@ from error import TTAMOAuthError
 from ..models import Resource
 from ..query_builder import COORD_RE, InvalidQuery
 from util import slice_, get_snps, get_coord
+import requests
 
 # we use this to distinguish any 23andMe resource from internal resources
 PREFIX = 'ttam_'
@@ -35,6 +36,22 @@ def require_client(adaptor):
             raise TTAMOAuthError
         return adaptor(*args, **kwargs)
     return checked 
+
+@require_client
+def get_resource(resource_type, resource_id):
+    '''
+    resource_type: callsets, variantsets,
+    '''
+    ttam_client = TTAMClient.query.get(request.session.user.email)
+    get_result = ttam_client.get_resource(resource_type, resource_id)
+    return get_result
+
+
+@require_client
+def search_sets(resource_type, data):
+    ttam_client = TTAMClient.query.get(request.session.user.email)
+    search_result = ttam_client.search_sets(resource_type, data)
+    return search_result
 
 
 def make_ttam_seq(snp, coord, pid):

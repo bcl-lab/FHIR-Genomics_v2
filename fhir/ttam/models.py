@@ -8,7 +8,7 @@ from error import TTAMOAuthError
 from ..database import db
 
 TOKEN_URI = 'https://api.23andme.com/token/' 
-API_BASE = 'https://api.23andme.com/1/' 
+API_BASE = 'https://api.23andme.com/1/'
 
 def assert_good_resp(resp):
     '''
@@ -43,6 +43,7 @@ class TTAMClient(db.Model):
     # might be a demo account
     api_base = db.Column(db.String(200), nullable=True)
     profiles = db.Column(db.Text, nullable=True)
+    __tablename__ = 'TTAMClient'
     
     def __init__(self, code, user_id, ttam_config): 
         '''
@@ -64,7 +65,13 @@ class TTAMClient(db.Model):
         self.set_api_base()
         patients = self.get_patients()
         self.profiles = ' '.join(p['id'] for p in patients)
-        self.user_id = user_id 
+        self.user_id = user_id
+
+    def _get_header(self):
+        '''
+        helper functions for getting HTTP Header to make 23andme API call
+        '''
+        return {'Authorization': 'Bearer '+self.access_token}
 
     def set_api_base(self):
         '''
@@ -137,11 +144,7 @@ class TTAMClient(db.Model):
         patient_data = (resp.json() for resp in resps) 
         return {pdata['id']: pdata['genotypes'] for pdata in patient_data}
 
-    def _get_header(self):
-        '''
-        helper functions for getting HTTP Header to make 23andme API call
-        '''
-        return {'Authorization': 'Bearer '+self.access_token} 
+
 
     @api_call
     def get_patients(self):

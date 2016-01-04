@@ -5,17 +5,15 @@ from fhir.models import Access
 from ..util import json_to_xml
 import error
 import json
-import datetime
 from urlparse import urljoin
 import requests
+import datetime
 
-
-GA_JSON_MIMETYPE = 'application/json'
-json_response = partial(Response, mimetype=GA_JSON_MIMETYPE)
-GA_XML_MIMETYPE = 'application/xml'
-xml_response = partial(Response, mimetype=GA_XML_MIMETYPE)
-API_BASE = 'https://www.googleapis.com/genomics/v1beta2'
-CONTENT_TYPE_HEADER = {'Content-Type': 'application/json; charset=UTF-8'}
+TTAM_JSON_MIMETYPE = 'application/json'
+json_response = partial(Response, mimetype=TTAM_JSON_MIMETYPE)
+TTAM_XML_MIMETYPE = 'application/xml'
+xml_response = partial(Response, mimetype=TTAM_XML_MIMETYPE)
+API_BASE = 'https://api.23andme.com/1/'
 
 def verify_access(request, resource_type, access_type):
     '''
@@ -41,7 +39,7 @@ def verify_access(request, resource_type, access_type):
         return False
 
 
-def ga_handle_read(request, resource_type, resource_id):
+def ttam_handle_read(request, resource_type, resource_id):
     resource = get_resource(resource_type, resource_id)
     if resource is None:
         return error.inform_not_found()
@@ -64,7 +62,7 @@ def ga_handle_read(request, resource_type, resource_id):
     return response
 
 
-def ga_handle_search(request, resource_type):
+def ttam_handle_search(request, resource_type):
     '''
     handle FHIR search operation
     '''
