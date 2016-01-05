@@ -246,6 +246,7 @@ def create_diagnosticreport(patientId):
 
     data = {
         'resourceType': 'reportforgenetics',
+        'extension': extension,
         'status': 'final',
         'code': {'text': 'Gene mutation analysis'},
         'subject': patientId,

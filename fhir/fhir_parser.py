@@ -49,13 +49,14 @@ def get_extensions(datatype, data):
     results = {}
     extensions_map = SPECS[datatype]['extensionsMap']
     extensions_in_data = data.get('extension')
-    for extension in extensions_in_data:
-        url = extension.get('url')
-        if extensions_map.get(url):
-            extension_name = extensions_map[url]['name']
-            extension_type = extensions_map[url]['type']
-            results[extension_name] = {'data': extension.get('value' + extension_type[0].upper() + extension_type[1:]),
-                                       'type': extension_type}
+    if extensions_in_data is not None:
+        for extension in extensions_in_data:
+            url = extension.get('url')
+            if extensions_map.get(url):
+                extension_name = extensions_map[url]['name']
+                extension_type = extensions_map[url]['type']
+                results[extension_name] = {'data': extension.get('value' + extension_type[0].upper() + extension_type[1:]),
+                                           'type': extension_type}
     return results
 
 
@@ -63,17 +64,18 @@ def get_complex_extensions(datatype, data):
     results = {}
     complex_extensions = SPECS[datatype]['complexExtensions']
     extensions_in_data = data.get('extension')
-    for extension in extensions_in_data:
-        url = extension.get('url')
-        if url in complex_extensions:
-            sub_extensions_in_data = extension.get('extension')
-            for i in sub_extensions_in_data:
-                extension_name = i['url']
-                extension_search_name = complex_extensions[url][extension_name][0]
-                extension_type = complex_extensions[url][extension_name][1]
-                results[extension_search_name] = {'data': i.get('value' + extension_type[0].upper()
-                                                                + extension_type[1:]),
-                                                  'type': extension_type}
+    if extensions_in_data is not None:
+        for extension in extensions_in_data:
+            url = extension.get('url')
+            if url in complex_extensions:
+                sub_extensions_in_data = extension.get('extension')
+                for i in sub_extensions_in_data:
+                    extension_name = i['url']
+                    extension_search_name = complex_extensions[url][extension_name][0]
+                    extension_type = complex_extensions[url][extension_name][1]
+                    results[extension_search_name] = {'data': i.get('value' + extension_type[0].upper()
+                                                                    + extension_type[1:]),
+                                                      'type': extension_type}
     return results
 
 
