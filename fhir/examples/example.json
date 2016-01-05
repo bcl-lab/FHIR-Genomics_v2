@@ -1,57 +1,50 @@
 {
-    "resourceType": "consensus-sequence-block",
+    "resourceType": "hlaresult",
     "extension": [
                   {
-                  "url": "http://hl7.org/fhir/StructureDefinition/observation-consensus-sequence-blockReferenceSeq",
-                  "valueCodeableConcept": {
-                  "coding": [
-                             {
-                             "system": "http://www.ncbi.nlm.nih.gov/projects/genome/assembly/grc/human/",
-                             "code": "ref1"
-                             }
-                             ]
+                  "url": "http://hl7.org/fhir/StructureDefinition/hla-genotyping-resultsAlleleAsignmentDate",
+                  "valueDate": "2014-10-22"
+                  },
+                  {
+                  "extension": [
+                                {
+                                "url": "text",
+                                "valueString": "HLA-A*01:01:01+HLA-A*24:02:01"
+                                }
+                                ],
+                  "url": "http://hl7.org/fhir/StructureDefinition/hla-genotyping-resultsGlstring"
+                  },
+                  {
+                  "url": "http://hl7.org/fhir/StructureDefinition/hla-genotyping-resultsConsensusSequenceBlock",
+                  "valueReference": {
+                  "reference": "Observation/consensus-sequence-block-example-1"
                   }
                   },
                   {
-                  "url": "http://hl7.org/fhir/StructureDefinition/observation-consensus-sequence-blockStart",
-                  "valueInteger": 29942412
-                  },
-                  {
-                  "url": "http://hl7.org/fhir/StructureDefinition/observation-consensus-sequence-blockEnd",
-                  "valueInteger": 29942852
-                  },
-                  {
-                  "url": "http://hl7.org/fhir/StructureDefinition/observation-consensus-sequence-blockPhaseSet",
-                  "valueInteger": 1
-                  },
-                  {
-                  "url": "http://hl7.org/fhir/StructureDefinition/observation-consensus-sequence-blockExpectedCopyNumber",
-                  "valueInteger": 1
-                  },
-                  {
-                  "url": "http://hl7.org/fhir/StructureDefinition/observation-consensus-sequence-blockContinuity",
-                  "valueBoolean": true
-                  },
-                  {
-                  "url": "http://hl7.org/fhir/StructureDefinition/observation-consensus-sequence-blockVariant",
+                  "url": "http://hl7.org/fhir/StructureDefinition/hla-genotyping-resultsConsensusSequenceBlock",
                   "valueReference": {
-                  "reference": "Sequence/433e90fa-2fab-49bc-a99a-480882dd1b26"
-                  }
-                  },
-                  {
-                  "url": "http://hl7.org/fhir/StructureDefinition/observation-consensus-sequence-blockVariant",
-                  "valueReference": {
-                  "reference": "Sequence/864b13da-dddf-4fbe-9ee4-39d58ad6e971"
+                  "reference": "Observation/consensus-sequence-block-example-2"
                   }
                   }
                   ],
     "status": "final",
     "code": {
-        "coding": [
-                   {
-                   "system": "http://loinc.org",
-                   "code": "13298-5"
-                   }
-                   ]
-    }
+        "text": "HLA genotyping results"
+    },
+    "subject": {
+        "reference": "Patient/genetics-example2",
+        "display": "Molecular Lab Patient ID: HOSP-23456"
+    },
+    "effectiveDateTime": "2015-05-26T15:30:10+01:00",
+    "issued": "2015-05-26T15:30:10+01:00",
+    "performer": {
+        "reference": "Practitioner/genetics-example2",
+        "display": "Molecular Diagnostic Laboratory"
+    },
+    "specimen": [
+                 {
+                 "reference": "Specimen/genetics-example2",
+                 "display": "Molecular Specimen ID: MLD45-Z4-1234"
+                 }
+                 ]
 }
