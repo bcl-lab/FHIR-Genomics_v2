@@ -229,7 +229,8 @@ def handle_update(request, resource_type, resource_id):
     '''
     handle FHIR update operation
     '''
-    old = find_latest_resource(resource_type, resource_id, owner=request.authorizer)
+
+    old = find_latest_resource(resource_type, resource_id, owner_id=request.authorizer.email)
     if old is None:
         return fhir_error.inform_not_allowed()
 
@@ -239,7 +240,7 @@ def handle_update(request, resource_type, resource_id):
     if not valid:
         return fhir_error.inform_bad_request()
 
-    new = old.update(request.data)
+    new = old.update(request.data, request.authorizer.email)
     index_resource(new, search_elements)
 
     return new.as_response(request)

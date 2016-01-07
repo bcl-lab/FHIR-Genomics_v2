@@ -127,13 +127,13 @@ class Resource(db.Model, SimpleInsert):
             self.end = data['coordinate'][0]['endPosition']
         '''
 
-    def update(self, data):
+    def update(self, data, owner_id):
         '''
         create a new resource with incremented version number
         and mark the older one unvisible
         '''
         self.visible = False
-        latest = Resource(self.resource_type, data)
+        latest = Resource(self.resource_type, data, owner_id)
         latest.resource_id = self.resource_id
         latest.create_time = self.create_time
         latest.version = self.version + 1
