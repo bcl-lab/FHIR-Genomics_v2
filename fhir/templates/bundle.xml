@@ -9,19 +9,19 @@
 	{% for _link in link %}
 	<link>
         <relation>
-            {{ _link.rel }}
+            {{ _link.relation }}
         </relation>
         <url>
-            {{ _link.href }}
+            {{ _link.url }}
         </url>
     </link>
 	{% endfor %}
-	<total xmlns:os="http://a9.com/-/spec/opensearch/1.1/">{{ totalResults }}</total>
+	<total xmlns:os="http://a9.com/-/spec/opensearch/1.1/">{{ total }}</total>
 
 	{% for _entry in entry %}
 	<entry>
-		<fullUrl>{{ _entry.id }}</fullUrl>
-        {{ _entry.content|safe }}
+		<fullUrl>{{ _entry.fullUrl }}</fullUrl>
+        {{ _entry.resource|safe }}
 	</entry>
 	{% endfor %}
 </Bundle>
