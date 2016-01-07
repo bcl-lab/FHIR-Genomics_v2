@@ -146,18 +146,14 @@ class FHIRBundle(object):
             resource_type = relative_resource_url.split('/')[0]
             if self.data_format == 'xml':
                 resource_content = json_to_xml(resource_content)
-
             entries.append({
-                'content': resource_content,
-                'created': resource.create_time.isoformat(),
-                'updated': resource.update_time.isoformat(),
-                'id': resource_url,
-                'title': relative_resource_url
+                'fullUrl': resource_url,
+                'resource': resource_content
             })
 
         bundle['entry'] = entries
 
-        links = [{'rel': 'self', 'href': self.request_url}]
+        links = [{'relation': 'self', 'url': self.request_url}]
         if self.next_url is not None:
             links.append({
                 'rel': 'next',
@@ -170,10 +166,11 @@ class FHIRBundle(object):
             })
 
         bundle['link'] = links
-        bundle['totalResults'] = self.resource_count
+        bundle['total'] = self.resource_count
         bundle['updated'] = self.update_time
         bundle['id'] = self.request_url
         bundle['type'] = 'searchset'
+        bundle['resourceType'] = 'Bundle'
         return bundle
 
     def as_response(self):
@@ -223,6 +220,21 @@ def handle_read(request, resource_type, resource_id):
         return fhir_error.inform_gone()
 
     return resource.as_response(request)
+
+
+def handle_delete(request, resource_type, resource_id):
+    resource = (Resource
+            .query
+            .filter_by(
+                resource_type=resource_type,
+                resource_id=resource_id,
+                owner_id=request.authorizer.email)
+            .order_by(Resource.version.desc())
+            .first())
+    response = resource.as_response(request)
+    db.session.delete(resource)
+    db.session.commit()
+    return response
 
 
 def handle_update(request, resource_type, resource_id):
