@@ -178,6 +178,7 @@ PRED_MAKERS = {
     'string': make_string_pred
 }
 
+
 def make_coord_pred(coord): 
     coord_match = COORD_RE.match(coord) 
     if coord_match is None:
