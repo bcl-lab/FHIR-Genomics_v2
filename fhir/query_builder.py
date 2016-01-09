@@ -174,6 +174,7 @@ PRED_MAKERS = {
     'quantity': make_quantity_pred,
     'number': make_number_pred,
     'token': make_token_pred,
+    'boolean': make_string_pred,
     'date': make_date_pred,
     'string': make_string_pred
 }

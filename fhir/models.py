@@ -7,6 +7,7 @@ from uuid import uuid4
 from urlparse import urljoin
 from fhir_spec import RESOURCES
 from util import json_response, xml_response, json_to_xml, hash_password
+from fhir_error import inform_bad_request
 
 # an oauth client can only keep access token for 1800 seconds
 EXPIRE_TIME = 1800

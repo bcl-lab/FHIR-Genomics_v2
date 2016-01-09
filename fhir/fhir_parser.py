@@ -99,7 +99,7 @@ def parse(datatype, data, correctible):
             return False, None
         search_elements = filter(lambda x: x.get('spec') is not None and x.get('spec').get('name')!='extension',
                         search_elements)
-        #print a
+
     if datatype in ['observationforgenetics', 'consensus-sequence-block', 'reportforgenetics', 'orderforgenetics'
                     'hlaresult', 'familymemberhistory-genetic']:
         results_1 = get_extensions(datatype, data)

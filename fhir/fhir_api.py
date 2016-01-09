@@ -198,7 +198,9 @@ def handle_create(request, resource_type):
         resource_type, request.data, correctible)
     if not valid:
         return fhir_error.inform_bad_request()
-
+    data = request.data
+    if data.get('id'):
+        return fhir_error.inform_bad_request()
     resource = Resource(resource_type, request.data, owner_id=request.authorizer.email)
     index_resource(resource, search_elements)
 

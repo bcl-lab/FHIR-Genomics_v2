@@ -138,12 +138,24 @@ def index_date(index, element):
     return index
 
 
+def index_boolean(index, element):
+    if element:
+        text_elements = ['true', '1']
+        index['text'] = '::%s::' % ('::'.join(text_elements), )
+    else:
+        text_elements = ['false', '0']
+        index['text'] = '::%s::' % ('::'.join(text_elements), )
+    return index
+
+
 SEARCH_INDEX_FUNCS = {
     'string': index_string,
     'token': index_token,
     'quantity': index_quantity,
     'number': index_number,
-    'date': index_date
+    'date': index_date,
+    'boolean': index_boolean,
+    'HumanName': index_string
 }
 
 
