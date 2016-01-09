@@ -24,8 +24,7 @@
 
 <p>First, clear the database:</p>
 
-<p><code>$ python server.py clear
-</code></p>
+<p><code>$ python server.py clear</code></p>
 
 <p>Then, you can write scripts to upload your own data. We provide a sample script - <code>load_example.py</code> to create and add sequence instances from vcf files and other instances from random data and local json files - observationforgenetics (Genetics profile for Observation), reportforgenetics (Genetics profile for DiagnosticReport), orderforgenetics (Genetics profile for DiagnosticOrder).</p>
 
@@ -53,7 +52,9 @@
 
 <p><a href="https://github.com/chaiery/ga2fhir">https://github.com/chaiery/ga2fhir</a></p>
 
-<h3> <span id="API Reference">API Reference:</span> </h3>
+<p>web.py</p>
+
+<h3>API Reference:</h3>
 
 <p>The SMART Genomics API is built on top of SMART on FHIR please see <a href="http://hl7.org/implement/standards/fhir/http.html">here</a> for more information.</p>
 
@@ -72,10 +73,11 @@
 
 <p>The Service Root URL is the address where all of the resources defined by this interface are found. The Service Root URL takes the form of:</p>
 
-<p><code>http://server/api/resourceType
-</code></p>
+<p><code>http://server/api/resourceType</code></p>
 
-<h4>Read</h4>
+<h4>Style:</h4>
+
+<p>Read</p>
 
 <p><code>GET [base]/[type]/[id]</code></p>
 
@@ -83,13 +85,161 @@
 
 <p><code>http://localhost:2048/api/Sequence/[id] </code></p>
 
-<h4>Search</h4>
+<p>Search</p>
 
 <p><code>GET [base]/[type]{?[parameters]}</code></p>
 
 <p>For example:</p>
 
 <p><code>[http://localhost:2048/api/Sequence?variationID=[variationID]] </code></p>
+
+<h4>Sample codes:</h4>
+
+<p>Python:</p>
+
+<p>At first, you may use &#39;requests&#39; or other python library </p>
+
+<p>to post/get/put</p>
+
+<pre><code>API_BASE = &#39;http://localhost:2048/api&#39;
+#to read data
+def read(request, url, id):
+  access_token = request.COOKIES[&#39;genomic_access_token&#39;]
+  resp = requests.get(&#39;%s/%s/%s?_format=json&#39;%(API_BASE, url, id),
+			  headers={&#39;Accept&#39;: &#39;application/json&#39;,&#39;Authorization&#39;: &#39;Bearer %s&#39;% access_token})
+  return resp.json()
+
+#to create data
+def create(request, url, data):
+  access_token = request.COOKIES[&#39;genomic_access_token&#39;]
+  resp = requests.post(&#39;%s/orderforgenetics?_format=json&#39;% API_BASE,
+  						data=json.dumps(data),headers={&#39;Authorization&#39;: &#39;Bearer %s&#39;% access_token})
+  return resp.json()
+
+#to update data
+def read(request, url, id, data):
+  access_token = request.COOKIES[&#39;genomic_access_token&#39;]
+  resp = requests.put(&#39;%s/%s/%s?_format=json&#39;%(API_BASE, url, id),
+  					 data=json.dumps(data),
+			  headers={&#39;Accept&#39;: &#39;application/json&#39;,&#39;Authorization&#39;: &#39;Bearer %s&#39;% access_token})
+  return resp.json()
+
+#to search data
+def search(url, args={}):
+  access_token = request.COOKIES[&#39;genomic_access_token&#39;]
+  args[&#39;_format&#39;] = &#39;json&#39;
+  resp = requests.get(&#39;%s%s?%s&#39;% (API_BASE, url, urlencode(args)),
+						headers={&#39;Accept&#39;: &#39;application/json&#39;,&#39;Authorization&#39;: &#39;Bearer %s&#39;% access_token})
+  return resp.json()
+
+</code></pre>
+
+<p>JavaScript:</p>
+
+<p>At first, you may need found a js library like &#39;requestift&#39; or &#39;jquery&#39; to post/get data.</p>
+
+<p>api.js</p>
+
+<pre><code>var requestify = require(&#39;requestify&#39;);// a js library
+var api_url = &#39;http://localhost:2048/api&#39;
+
+
+var doGet = function(url, access_token, res){
+  requestify.get(url, {
+  headers :{
+  		&#39;Accept&#39;: &#39;application/json&#39;,
+		&#39;Authorization&#39;: &#39;Bearer &#39; + access_token}
+  }).then(function(response){
+  		res.send(response.getBody());
+  });
+}
+
+var doPost = function(url, data, access_token, res){
+  requestify.post(url, data, {
+    headers:{
+      &#39;Accept&#39; : &#39;application/json&#39;,
+      &#39;Authorization&#39;: &#39;Bearer &#39; + access_token
+    }
+    }).then(function(response){
+    	res.send(response.getBody());
+    });
+}
+
+var doPut = function(url, data, access_token, res){
+  requestify.put(url, data,{
+    headers:{
+    &#39;Accept&#39;: &#39;application/json&#39;,
+    &#39;Authorization&#39;: &#39;Bearer &#39; + access_token
+  }
+  }).then(function(response){
+  res.send(response.getBody());
+  });
+}
+
+/*
+To create data
+*/
+var create = function(data_type, data, access_token, res){
+  var url = api_url + &#39;/&#39; + data_type +&#39;?_format=json&#39;;
+  doPost(url, data, access_token, res);
+}
+
+/*
+To update data
+*/
+var update = function(data_type, id, data, access_token, res){
+  var url = api_url + &#39;/&#39; +data_type + &#39;/&#39; + id +&#39;?_format=json&#39;;
+  doPut(url, data, access_token, res);
+}
+
+/*
+To search data
+*/
+var search = function(data_type, access_token, res){
+  var url = api_url + &#39;/&#39; + data_type + &#39;?_format=json&#39;;
+  doGet(url, access_token, res);
+}
+
+/*
+To read data
+*/
+var read = function(type, id, access_token, res){
+    var url = api_url + &#39;/&#39; + type + &#39;/&#39; + id + &#39;?_format=json&#39;;
+    doGet(url, access_token, res);
+}
+
+```
+
+you can get data by using ```res.send(response.getBody())```.
+
+if you use angular.js, you can write code like this.
+
+```
+$http.get(&#39;/Patient?id=123456&#39;).success( function(data) {
+	//the data is information about Patient/123456
+});
+
+router.get(&#39;/Patient&#39;, function(req, res, next){
+  api.read(&#39;Patient&#39;,  req.query.id, req.session.access_token, res);
+})
+
+</code></pre>
+
+<h3>Scope:</h3>
+
+<p>FHIR Genomics server supports all resources in FHIR and genetics profiles, which can be retrieved by:</p>
+
+<p>GET /observationforgenetics</p>
+
+<p>GET /reportforgenetics</p>
+
+<p>GET /orderforgenetics</p>
+
+<p>GET /hlaresult</p>
+
+<p>GET /consensus-sequence-block</p>
+
+<p>GET /familymemberhistory-genetic</p>
 
 <h3>Authentication</h3>
 
