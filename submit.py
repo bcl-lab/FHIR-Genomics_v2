@@ -7,6 +7,7 @@ import names
 import random
 from functools import partial
 import os
+from fhir.fhir_error import inform_bad_request
 
 
 BASEDIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'fhir')
@@ -55,8 +56,9 @@ def rand_patient():
 def submit_web(resouce_type, data, user):
     global test_resource
     test_resource = partial(Resource, owner_id=user.email)
-    save_resource(resouce_type, data)
+    result = save_resource(resouce_type, data)
     commit_buffers(BUF)
+    return result
 
 
 def load_from_file(path, relevant_dir):
