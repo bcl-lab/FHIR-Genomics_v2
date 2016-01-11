@@ -153,15 +153,16 @@ def login():
     '''
     password = request.form['password']
     email = request.form['email']
+    redirect_url = request.form['redirect_url']
     user = User.query.filter_by(email=email).first()
     if user is not None and user.check_password(password):
         session_id = log_in(user)
-        resp = redirect(request.form['redirect_url'])
+        resp = redirect(redirect_url)
         resp.set_cookie('session_id', session_id)
     else:
         redirect_args = {'email':email,
                         'message': 'Incorrect email or password',
-                        'redirect': request.form['redirect_url']}
+                        'redirect': redirect_url}
         resp = redirect('/?%s'% urlencode(redirect_args))
     return resp
 
@@ -208,7 +209,6 @@ def signup():
             return resp
 
 
-
 @ui.route('/submit', methods=['GET', 'POST'])
 def submit():
     '''
@@ -241,6 +241,13 @@ def submit():
             #except:
             #message = "Incorrect content"
         return render_template('submit.html', message=message)
+
+
+@ui.route('/metadata', methods=['GET', 'POST'])
+def metadata():
+
+    if request.method == 'GET':
+        return render_template('metadata')
 
 
 @ui.route('/create_app', methods=['GET', 'POST'])

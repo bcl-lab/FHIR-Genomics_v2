@@ -7,6 +7,7 @@ from uuid import uuid4
 from urlparse import urljoin
 from fhir_spec import RESOURCES
 from util import json_response, xml_response, json_to_xml, hash_password
+from fhir_error import inform_bad_request
 
 # an oauth client can only keep access token for 1800 seconds
 EXPIRE_TIME = 1800
@@ -98,11 +99,6 @@ class Resource(db.Model, SimpleInsert):
     version = db.Column(db.Integer)
     visible = db.Column(db.Boolean)
 
-    # speicalized columns for faster sequence resource query
-    chromosome = db.Column(db.String, nullable=True)
-    start = db.Column(db.Integer, nullable=True)
-    end = db.Column(db.Integer, nullable=True)
-
     owner = db.relationship('User')
 
     def __init__(self, resource_type, data, owner_id):
@@ -112,28 +108,20 @@ class Resource(db.Model, SimpleInsert):
         self.update_time = self.create_time = datetime.now()
         self.resource_type = resource_type
         self.resource_id = str(uuid4())
-        self.data = json.dumps(data, separators=(',', ':'))
         self.version = 1
         self.visible = True
         self.owner_id = owner_id
-        '''
-        if resource_type == 'Sequence':
-            self.chromosome = data['coordinate'][0]['chromosome']['text']
-            self.start = data['coordinate'][0]['start']
-            self.end = data['coordinate'][0]['end']
-        elif resource_type =='Sequencevcf':
-            self.chromosome = data['coordinate'][0]['chromosome']
-            self.start = data['coordinate'][0]['startPosition']
-            self.end = data['coordinate'][0]['endPosition']
-        '''
+        data['id'] = self.resource_id
+        data['meta'] = {'versionID': self.version, 'lastUpdated': self.update_time.isoformat()}
+        self.data = json.dumps(data, separators=(',', ':'))
 
-    def update(self, data):
+    def update(self, data, owner_id):
         '''
         create a new resource with incremented version number
         and mark the older one unvisible
         '''
         self.visible = False
-        latest = Resource(self.resource_type, data)
+        latest = Resource(self.resource_type, data, owner_id)
         latest.resource_id = self.resource_id
         latest.create_time = self.create_time
         latest.version = self.version + 1
@@ -157,7 +145,6 @@ class Resource(db.Model, SimpleInsert):
             self.resource_type,
             self.resource_id,
             self.version))
-
         return response
 
     def get_url(self, version_specific=False):

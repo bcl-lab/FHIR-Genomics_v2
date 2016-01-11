@@ -810,3 +810,14 @@
 [2016-01-11 16:45:42 +0800] [21304] [ERROR] Connection in use: ('localhost', 2048)
 [2016-01-11 16:45:42 +0800] [21304] [ERROR] Retrying in 1 second.
 [2016-01-11 16:45:43 +0800] [21304] [ERROR] Can't connect to ('localhost', 2048)
+[2016-01-11 17:38:37 +0800] [22100] [ERROR] Connection in use: ('localhost', 2048)
+[2016-01-11 17:38:37 +0800] [22100] [ERROR] Retrying in 1 second.
+[2016-01-11 17:38:38 +0800] [22100] [ERROR] Connection in use: ('localhost', 2048)
+[2016-01-11 17:38:38 +0800] [22100] [ERROR] Retrying in 1 second.
+[2016-01-11 17:38:39 +0800] [22100] [ERROR] Connection in use: ('localhost', 2048)
+[2016-01-11 17:38:39 +0800] [22100] [ERROR] Retrying in 1 second.
+[2016-01-11 17:38:40 +0800] [22100] [ERROR] Connection in use: ('localhost', 2048)
+[2016-01-11 17:38:40 +0800] [22100] [ERROR] Retrying in 1 second.
+[2016-01-11 17:38:41 +0800] [22100] [ERROR] Connection in use: ('localhost', 2048)
+[2016-01-11 17:38:41 +0800] [22100] [ERROR] Retrying in 1 second.
+[2016-01-11 17:38:42 +0800] [22100] [ERROR] Can't connect to ('localhost', 2048)

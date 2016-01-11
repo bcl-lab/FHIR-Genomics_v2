@@ -1,0 +1,73 @@
+{
+    "resourceType": "reportforgenetics",
+    "extension":[
+                 {
+                 "url": "http://hl7.org/fhir/StructureDefinition/DiagnosticReport-geneticsFamilyMemberHistory",
+                 "valueReference": {
+                 "reference": "FamilyMemberHistory/11"
+                 }
+                 },
+                 {
+                 "url": "http://hl7.org/fhir/StructureDefinition/DiagnosticReport-geneticsFamilyMemberHistory",
+                 "valueReference": {
+                 "reference": "FamilyMemberHistory/11"
+                 }
+                 },
+                 {
+                 "url": "http://hl7.org/fhir/StructureDefinition/DiagnosticReport-geneticsFamilyMemberHistory",
+                 "valueReference": {
+                 "reference": "FamilyMemberHistory/11"
+                 }
+                 }
+                 ],
+    "status": "partial",
+    "category": {
+        "coding": [
+                   {
+                   "system": "http://hl7.org/fhir/v2/0074",
+                   "code": "15220000",
+                   "display": "Laboratory test"
+                   }
+                   ]
+    },
+    "code": {
+        "coding": [
+                   {
+                   "system": "http://loinc.org",
+                   "code": "49874-1",
+                   "display": "ABCB4 gene mutation analysis"
+                   }
+                   ]
+    },
+    "subject": {
+        "reference": "Patient/genetics-example2"
+    },    "effectiveDateTime": "2014-03-04T08:30:00+11:00",
+    "issued": "2014-05-16T10:28:00+01:00",
+    "performer": {
+        "reference": "Practitioner/genetics-example2"
+    },
+    "specimen": [
+                 {
+                 "reference": "Specimen/genetics-example2",
+                 "display": ""
+                 }
+                 ],
+    "result": [
+               {
+               "reference": "Observation/od-1",
+               "display": "Genetic analysis master panel for ABCB4 -variant1"
+               },
+               {
+               "reference": "Observation/od-2",
+               "display": "Genetic analysis master panel for ABCB4 -variant2"
+               },
+               {
+               "reference": "Observation/od-3",
+               "display": "Genetic analysis master panel for ABCB4 -variant3"
+               },
+               {
+               "reference": "Observation/od-4",
+               "display": "Genetic analysis master panel for ABCB4 -variant4"
+               }
+               ]
+}

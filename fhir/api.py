@@ -1,5 +1,5 @@
 from flask.blueprints import Blueprint
-from flask import Response, g, request, redirect
+from flask import Response, g, request, redirect, render_template
 import fhir_api
 import fhir_error
 from fhir_spec import RESOURCES
@@ -93,6 +93,10 @@ def get_client():
 @api.route('/<resource_type>', methods=['GET', 'POST'])
 @protected
 def handle_resource(resource_type):
+
+    if resource_type == 'metadata':
+        return redirect("/static/doc/metadata")
+
     if resource_type in ['callsets', 'variantsets', 'readgroupsets', 'referencesets', 'variant']:
         if request.method == 'GET':
             return ga4gh.api.ga_handle_search(request, resource_type)

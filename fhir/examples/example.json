@@ -1,56 +1,23 @@
 {
-    "resourceType": "consensus-sequence-block",
+    "resourceType": "familymemberhistory-genetic",
     "extension": [
                   {
-                  "url": "http://hl7.org/fhir/StructureDefinition/observation-consensus-sequence-blockReferenceSeq",
-                  "valueCodeableConcept": {
-                  "coding": [
-                             {
-                             "system": "http://www.ncbi.nlm.nih.gov/projects/genome/assembly/grc/human/",
-                             "code": "ref1"
-                             }
-                             ]
-                  }
-                  },
-                  {
-                  "url": "http://hl7.org/fhir/StructureDefinition/observation-consensus-sequence-blockStart",
-                  "valueInteger": 29942412
-                  },
-                  {
-                  "url": "http://hl7.org/fhir/StructureDefinition/observation-consensus-sequence-blockEnd",
-                  "valueInteger": 29942852
-                  },
-                  {
-                  "url": "http://hl7.org/fhir/StructureDefinition/observation-consensus-sequence-blockPhaseSet",
-                  "valueInteger": 1
-                  },
-                  {
-                  "url": "http://hl7.org/fhir/StructureDefinition/observation-consensus-sequence-blockExpectedCopyNumber",
-                  "valueInteger": 1
-                  },
-                  {
-                  "url": "http://hl7.org/fhir/StructureDefinition/observation-consensus-sequence-blockContinuity",
-                  "valueBoolean": true
-                  },
-                  {
-                  "url": "http://hl7.org/fhir/StructureDefinition/observation-consensus-sequence-blockVariant",
+                  "url": "http://hl7.org/fhir/StructureDefinition/family-member-history-genetics-observation",
                   "valueReference": {
-                  "reference": "Sequence/433e90fa-2fab-49bc-a99a-480882dd1b26"
-                  }
-                  },
-                  {
-                  "url": "http://hl7.org/fhir/StructureDefinition/observation-consensus-sequence-blockVariant",
-                  "valueReference": {
-                  "reference": "Sequence/864b13da-dddf-4fbe-9ee4-39d58ad6e971"
+                  "reference": "DiagnosticReport/dgf1"
                   }
                   }
                   ],
-    "status": "final",
-    "code": {
+    "patient": {
+        "reference": "Patient/example"
+    },
+    "status": "completed",
+    "relationship": {
         "coding": [
                    {
-                   "system": "http://loinc.org",
-                   "code": "13298-5"
+                   "system": "http://hl7.org/fhir/familial-relationship",
+                   "code": "MTH",
+                   "display": "Mother"
                    }
                    ]
     }
