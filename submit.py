@@ -7,7 +7,7 @@ import names
 import random
 from functools import partial
 import os
-
+import json
 
 BASEDIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'fhir')
 
@@ -68,6 +68,7 @@ def load_from_file(path, relevant_dir):
 
 def init(resource):
     dir = os.path.join(BASEDIR, 'examples/' + resource)
+    print dir
     load_instance = partial(load_from_file, relevant_dir=dir)
     list_of_file = os.listdir(dir)
     list_of_instance = []
@@ -80,6 +81,7 @@ def init(resource):
         save_resource(resource, instance)
         print 'Created %s' % resource
         break
+
 
 if __name__ == '__main__':
     from server import app

@@ -2,5 +2,7 @@
 <project version="4">
   <component name="VcsDirectoryMappings">
     <mapping directory="" vcs="" />
+    <mapping directory="$PROJECT_DIR$/../../lixiaoyu/FHIR-Genomics" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/../../origin/FHIR-Genomics-Viewer" vcs="Git" />
   </component>
 </project>
