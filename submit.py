@@ -87,9 +87,10 @@ def init(resource):
 if __name__ == '__main__':
     from server import app
     with app.app_context():
+        test_resource = partial(Resource, owner_id='name@mail.com')
         init('Practitioner')
         init('Organization')
-        test_resource = partial(Resource, owner_id='name@mail.com')
+
 
         for _ in xrange(8):
             patient = rand_patient()
