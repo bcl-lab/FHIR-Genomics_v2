@@ -179,7 +179,7 @@ def load_vcf_example(vcf_file):
                 {
                 'chromosome': {'text': record.CHROM},
                 'start': record.POS,
-                'end': record.end,
+                'end': int(record.end) + 1,
                 'genomeBuild': {'text': 'GRCh37'}
             }],
 
