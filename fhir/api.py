@@ -12,6 +12,7 @@ from datetime import datetime
 import re
 import ga4gh
 import basespace
+from fhir_spec import RESOURCES
 
 
 
@@ -59,6 +60,12 @@ def protected(view):
         if resource_type in ['callsets', 'variantsets', 'readgroupsets', 'referencesets', 'variant']:
             ga4gh.view.acquire_client()
             return view(*args, **kwargs)
+        elif resource_type in ['variantset', 'genomes', 'files', 'runs', 'genomes']:
+            basespace.view.acquire_client()
+            return view(*args, **kwargs)
+        elif resource_type in RESOURCES:
+            ttam.view.acquire_client()
+            return view(*args, **kwargs)
 
         if not verify_access(request, resource_type, access_type):
             # no access
@@ -100,8 +107,13 @@ def handle_resource(resource_type):
     if resource_type in ['callsets', 'variantsets', 'readgroupsets', 'referencesets', 'variant']:
         if request.method == 'GET':
             return ga4gh.api.ga_handle_search(request, resource_type)
-
-    if resource_type not in RESOURCES:
+    elif resource_type in ['variantset', 'genomes', 'files', 'runs', 'genomes']:
+        if request.method == 'GET':
+            return basespace.api.bs_handle_search(request, resource_type)
+    elif resource_type in RESOURCES:
+        if request.method == 'GET':
+            return ttam.api.ttam_handle_search(request, resource_type)
+    else:
         return fhir_error.inform_not_found()
 
     g.api_base = request.api_base = util.get_api_base() 
@@ -119,9 +131,16 @@ def handle_resources(resource_type, resource_id):
     if resource_type in ['callsets', 'variantsets', 'readgroupsets', 'referencesets', 'variant']:
         if request.method == 'GET':
             return ga4gh.api.ga_handle_read(request, resource_type, resource_id)
-
-    if resource_type not in RESOURCES:
+    elif resource_type in ['variantset', 'genomes', 'files', 'runs', 'genomes']:
+        if request.method == 'GET':
+            return basespace.api.bs_handle_read(request, resource_type, resource_id)
+    elif resource_type in RESOURCES:
+        if request.method == 'GET':
+            return ttam.api.ttam_handle_read(request, resource_type, resource_id)
+    else:
         return fhir_error.inform_not_found()
+
+
 
     request.api_base = util.get_api_base() 
     fhir_request = fhir_api.FHIRRequest(request, is_resource=False)

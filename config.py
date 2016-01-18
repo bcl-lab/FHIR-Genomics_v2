@@ -47,7 +47,7 @@ MAX_SEQ_PER_FILE = 3000
 # randomly create GeneticObservation, which associates the two resources.
 CONDITION_TO_SEQ_RATIO = 0.1
 
-#GOOGLE_API_KEY = 'AIzaSyB01GeX_HiuZbHCkZ-P5hJ7yUHVkwFS07Q'
+GOOGLE_API_KEY = 'AIzaSyB01GeX_HiuZbHCkZ-P5hJ7yUHVkwFS07Q'
 #SECRET_KEY = 'hi'
 
 

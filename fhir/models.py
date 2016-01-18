@@ -67,7 +67,7 @@ class SimpleInsert(object):
                 if not col.primary_key or self.__dict__.get(col.name) is not None}
 
     def add_and_commit(self):
-        print db
+        # print db
         db.session.commit()
         self.__class__.core_insert([self.get_insert_params()])
 
