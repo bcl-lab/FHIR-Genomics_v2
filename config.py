@@ -19,6 +19,13 @@ APP_CONFIG = {
             'scope': 'basic names genomes',
             'auth_uri': 'http://api.23andme.com/authorize'
         },
+        'BS_CONFIG': {
+            'redirect_uri': 'http://localhost:5000/basespace/recv_redirect',
+            'client_id': '2c0b1fb21ca74f4e946d5a2c39fdfb8b',
+            'client_secret': '06b4c94fac4a4e58b0fb8895c8b55784',
+            'scope': 'basic names genomes',
+            'auth_uri': 'https://accounts.google.com/o/oauth2/auth'
+        },
 
         'GA4GH_CONFIG': {
             'redirect_uri': 'http://localhost:5000/ga4gh/recv_redirect',
