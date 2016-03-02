@@ -179,11 +179,7 @@ def load_vcf_example(vcf_file):
                 {
                 'chromosome': {'text': record.CHROM},
                 'start': record.POS,
-<<<<<<< Updated upstream
                 'end': int(record.end) + 1,
-=======
-                'end': int(record.end)+1,
->>>>>>> Stashed changes
                 'genomeBuild': {'text': 'GRCh37'}
             }],
 
