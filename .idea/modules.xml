@@ -2,8 +2,10 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+      <module fileurl="file://$USER_HOME$/project/123/.idea/123.iml" filepath="$USER_HOME$/project/123/.idea/123.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../lixiaoyu/FHIR-Genomics/.idea/FHIR-Genomics.iml" filepath="$PROJECT_DIR$/../../lixiaoyu/FHIR-Genomics/.idea/FHIR-Genomics.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/fhir-genomics.iml" filepath="$PROJECT_DIR$/.idea/fhir-genomics.iml" />
+      <module fileurl="file://$USER_HOME$/project/wecash_channel_analysis/.idea/wecash_channel_analysis.iml" filepath="$USER_HOME$/project/wecash_channel_analysis/.idea/wecash_channel_analysis.iml" />
     </modules>
   </component>
 </project>

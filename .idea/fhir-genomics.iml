@@ -5,6 +5,8 @@
     <orderEntry type="jdk" jdkName="Python 2.7.11 (~/anaconda/bin/python2.7)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="FHIR-Genomics" />
+    <orderEntry type="module" module-name="123" />
+    <orderEntry type="module" module-name="wecash_channel_analysis" />
   </component>
   <component name="TemplatesService">
     <option name="TEMPLATE_CONFIGURATION" value="Jinja2" />
