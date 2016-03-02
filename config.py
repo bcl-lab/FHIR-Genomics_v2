@@ -1,7 +1,7 @@
 # settings for Postgres
-PGUSERNAME = 'lix'
+PGUSERNAME = 'username'
 PGPASSWORD = 'password'
-DBNAME = 'fhir'
+DBNAME = 'xyz'
 
 APP_CONFIG = {
 		# SQL connection url

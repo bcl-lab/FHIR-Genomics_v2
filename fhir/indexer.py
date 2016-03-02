@@ -7,7 +7,6 @@ from models import save_buffer
 from util import get_api_base
 
 
-
 def get_text(data):
     '''
     Helper function to index a string for search later.

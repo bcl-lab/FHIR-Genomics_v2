@@ -297,19 +297,16 @@ def init_superuser():
 
 if __name__ == '__main__':
     from server import app
-    # arg_parser = ArgumentParser()
-    # arg_parser.add_argument('--file_type', help='type of file from which you wish to load genotype data')
-    # args = arg_parser.parse_args()
-    file_type = 'vcf'
+    arg_parser = ArgumentParser()
+    arg_parser.add_argument('file_type', help='type of file from which you wish to load genotype data')
+    args = arg_parser.parse_args()
     with app.app_context():
         init_superuser()
         init_conditions()
-        # if args.file_type == 'vcf':
-        if file_type == 'vcf':
+        if args.file_type == 'vcf':
             for example_file in os.listdir(os.path.join(BASEDIR, 'examples/vcf')):
                 load_vcf_example(os.path.join(BASEDIR, 'examples/vcf', example_file))
-        # elif args.file_type == 'ttam':
-        elif file_type == 'ttam':
+        elif args.file_type == 'ttam':
             for example_file in os.listdir(os.path.join(BASEDIR, 'examples/ttam')):
                 load_ttam_example(os.path.join(BASEDIR, 'examples/ttam', example_file))
         commit_buffers(BUF) 

@@ -67,7 +67,6 @@ class SimpleInsert(object):
                 if not col.primary_key or self.__dict__.get(col.name) is not None}
 
     def add_and_commit(self):
-        print db
         db.session.commit()
         self.__class__.core_insert([self.get_insert_params()])
 
@@ -108,23 +107,12 @@ class Resource(db.Model, SimpleInsert):
         '''
         self.update_time = self.create_time = datetime.now()
         self.resource_type = resource_type
-        if data.get('id') is None:
-            self.resource_id = str(uuid4())
-            data['id'] = self.resource_id
-        else:
-            data_new = {}
-            for i in data:
-                if i != 'fhir:id':
-                    data_new[i] = data[i]
-                else:
-                    data_new['id'] = data['fhir:id']
-            data = data_new
-            self.resource_id = data['id']
+        self.resource_id = str(uuid4())
         self.version = 1
         self.visible = True
         self.owner_id = owner_id
-        if data.get('meta') is None:
-            data['meta'] = {'versionId': self.version, 'lastUpdated': self.update_time.isoformat()}
+        data['id'] = self.resource_id
+        data['meta'] = {'versionID': self.version, 'lastUpdated': self.update_time.isoformat()}
         self.data = json.dumps(data, separators=(',', ':'))
 
     def update(self, data, owner_id):
@@ -133,7 +121,6 @@ class Resource(db.Model, SimpleInsert):
         and mark the older one unvisible
         '''
         self.visible = False
-        data['meta'] = {'versionId': self.version, 'lastUpdated': self.create_time.isoformat()}
         latest = Resource(self.resource_type, data, owner_id)
         latest.resource_id = self.resource_id
         latest.create_time = self.create_time

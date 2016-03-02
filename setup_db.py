@@ -8,6 +8,4 @@ from config import PGUSERNAME, PGPASSWORD, DBNAME
 
 if __name__ == '__main__':
     os.environ['PGPASSWORD'] = PGPASSWORD
-    cmd = 'psql -U %s -c "CREATE DATABASE %s"'% (PGUSERNAME, DBNAME)
-    print cmd
-    subprocess.call(cmd, shell=True)
+    subprocess.call('psql -U%s -c "CREATE DATABASE %s"'% (PGUSERNAME, DBNAME), shell=True)
