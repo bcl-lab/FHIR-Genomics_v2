@@ -16,12 +16,12 @@
         </url>
     </link>
 	{% endfor %}
-	<total xmlns:os="http://a9.com/-/spec/opensearch/1.1/">{{ total }}</total>
+	<total value = '{{ total }}'/>
 
 	{% for _entry in entry %}
 	<entry>
 		<fullUrl>{{ _entry.fullUrl }}</fullUrl>
-        {{ _entry.resource|safe }}
+        <resource>{{ _entry.resource|safe }}</resource>
 	</entry>
 	{% endfor %}
 </Bundle>
