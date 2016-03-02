@@ -90,7 +90,10 @@ if __name__ == '__main__':
         test_resource = partial(Resource, owner_id='name@mail.com')
         init('Practitioner')
         init('Organization')
+
+
         for _ in xrange(8):
             patient = rand_patient()
+
         commit_buffers(BUF)
 

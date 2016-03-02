@@ -1,6 +1,6 @@
 # Created by .ignore support plugin (hsz.mobi)
 .pyc
-config.py
+config.
 .idea/
 *.pyc
 
@@ -15,8 +15,6 @@ fhir/fhir_spec.pyc
 fhir/ga4gh/adaptor.pyc
 
 fhir/ga4gh/models.pyc
-
-*.pyc
 
 *.pyc
 

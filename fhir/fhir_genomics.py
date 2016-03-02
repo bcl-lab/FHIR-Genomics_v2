@@ -19,10 +19,10 @@ def register_blueprints(app):
     '''
     app.register_blueprint(api, url_prefix='/api')
     app.register_blueprint(oauth, url_prefix='/auth')
-    app.register_blueprint(ui, url_prefix='/ui')
+    app.register_blueprint(ui)
     app.register_blueprint(ttam, url_prefix='/ttam')
     app.register_blueprint(ga4gh, url_prefix='/ga4gh')
-    app.register_blueprint(basespace, url_prefix='/basespace')
+    app.register_blueprint(basespace, url_prefix='/ga4gh')
 
 
 def create_app(config):

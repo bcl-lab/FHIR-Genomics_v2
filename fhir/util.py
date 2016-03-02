@@ -55,6 +55,13 @@ def xml_to_json(root, resource_type):
         del root.attrib['xmlns']
     jsondict = _xml_to_json(root)
     jsondict['resourceType'] = resource_type
+    for i in jsondict:
+        if type(jsondict[i]) == dict:
+            for j in jsondict[i]:
+                if j == 'coding':
+                    jsondict[i][j] = [jsondict[i][j]]
+        if i == 'coding':
+            jsondict[i][j] = [jsondict[i][j]]
     return jsondict
 
 

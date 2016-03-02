@@ -245,6 +245,7 @@ def submit():
 
 @ui.route('/metadata', methods=['GET', 'POST'])
 def metadata():
+
     if request.method == 'GET':
         return render_template('metadata')
 

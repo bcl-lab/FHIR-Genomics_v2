@@ -5,7 +5,7 @@ import gevent.queue
 import requests
 import json
 from collections import defaultdict
-# from snps import COORDINATES
+#from snps import COORDINATES
 from config import GOOGLE_API_KEY
 
 

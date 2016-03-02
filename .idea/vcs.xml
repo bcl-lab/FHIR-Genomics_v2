@@ -4,7 +4,5 @@
     <mapping directory="" vcs="" />
     <mapping directory="$PROJECT_DIR$/../../lixiaoyu/FHIR-Genomics" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/../../origin/FHIR-Genomics-Viewer" vcs="Git" />
-    <mapping directory="$USER_HOME$/project/for_jiege" vcs="Git" />
-    <mapping directory="$USER_HOME$/project/wecash_channel_analysis" vcs="Git" />
   </component>
 </project>

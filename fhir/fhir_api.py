@@ -14,6 +14,7 @@ from urllib import urlencode
 from datetime import datetime
 from lxml import etree
 
+
 # TODO: support composite search param
 
 PAGE_SIZE = 50
@@ -59,6 +60,7 @@ class FHIRRequest(object):
                 resource_type = dataroot.tag.split('}')[-1]
                 self.data = xml_to_json(dataroot, resource_type)
             else:
+
                 self.data = json.loads(request.data)
 
     def _get_url(self, is_prev):
@@ -233,10 +235,27 @@ def handle_delete(request, resource_type, resource_id):
                 owner_id=request.authorizer.email)
             .order_by(Resource.version.desc())
             .first())
-    response = resource.as_response(request)
+    if resource is None:
+        return fhir_error.inform_no_content()
     db.session.delete(resource)
     db.session.commit()
-    return response
+    return fhir_error.inform_no_content()
+
+
+def handle_update_create(request, resource_type, resource_id):
+    '''
+    handle FHIR create operation
+    '''
+    correctible = (request.format == 'xml')
+    valid, search_elements = fhir_parser.parse_resource(
+        resource_type, request.data, correctible)
+    if not valid:
+        return fhir_error.inform_bad_request()
+    data = request.data
+    resource = Resource(resource_type, request.data, owner_id=request.authorizer.email)
+    index_resource(resource, search_elements)
+
+    return resource.as_response(request, created=True)
 
 
 def handle_update(request, resource_type, resource_id):
@@ -246,7 +265,7 @@ def handle_update(request, resource_type, resource_id):
 
     old = find_latest_resource(resource_type, resource_id, owner_id=request.authorizer.email)
     if old is None:
-        return fhir_error.inform_not_allowed()
+        return handle_update_create(request, resource_type, resource_id)
 
     correctible = (request.format == 'xml')
     valid, search_elements = fhir_parser.parse_resource(

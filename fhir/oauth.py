@@ -79,7 +79,6 @@ class OAuthScope(object):
 @require_login
 def authorize():
     if request.method == 'GET':
-        print '123445566'
         context_id = None
         # scopes requesting resource accesses
         resource_scopes = [] 
@@ -135,6 +134,7 @@ def authorize():
             redirect_args = {'error': 'Authorization declined'}
         return redirect('%s?%s'% (redirect_uri, urlencode(redirect_args))) 
 
+ 
 
 @oauth.route('/token', methods=['POST'])
 def exchange_token():
