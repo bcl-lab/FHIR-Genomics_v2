@@ -14,7 +14,6 @@ from urllib import urlencode
 from datetime import datetime
 from lxml import etree
 
-
 # TODO: support composite search param
 
 PAGE_SIZE = 50
