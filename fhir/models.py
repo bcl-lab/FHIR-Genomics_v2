@@ -98,22 +98,28 @@ class Resource(db.Model, SimpleInsert):
     data = db.Column(db.Text)
     version = db.Column(db.Integer)
     visible = db.Column(db.Boolean)
+    privacy_policy = db.Column(db.String)
 
     owner = db.relationship('User')
 
-    def __init__(self, resource_type, data, owner_id):
+    def __init__(self, resource_type, data, owner_id, resource_id=None, policy=None):
         '''
         data is a json dictionary of a resource
         '''
         self.update_time = self.create_time = datetime.now()
         self.resource_type = resource_type
-        self.resource_id = str(uuid4())
+        if resource_id:
+            self.resource_id = resource_id
+        else:
+            self.resource_id = str(uuid4())
         self.version = 1
         self.visible = True
         self.owner_id = owner_id
         data['id'] = self.resource_id
         data['meta'] = {'versionID': self.version, 'lastUpdated': self.update_time.isoformat()}
+        data['privacy_policy'] = policy
         self.data = json.dumps(data, separators=(',', ':'))
+        self.privacy_policy = policy
 
     def update(self, data, owner_id):
         '''
@@ -121,10 +127,39 @@ class Resource(db.Model, SimpleInsert):
         and mark the older one unvisible
         '''
         self.visible = False
-        latest = Resource(self.resource_type, data, owner_id)
-        latest.resource_id = self.resource_id
+        latest = Resource(self.resource_type, data, owner_id, self.resource_id, self.privacy_policy)
         latest.create_time = self.create_time
         latest.version = self.version + 1
+        data = json.loads(latest.data)
+        data['meta']['versionID'] = latest.version
+        latest.data = json.dumps(data, separators=(',', ':'))
+        return latest
+
+    def add_policy(self, policy_data, owner_id):
+        self.visible = False
+        policy_ori = self.privacy_policy
+        policy = []
+        if policy_ori:
+            policy.append(policy_ori)
+        for i in policy_data:
+            policy.append(policy_data[i])
+        policy = ','.join(map(str, policy))
+        latest = Resource(self.resource_type, json.loads(self.data), owner_id, self.resource_id, policy)
+        latest.create_time = self.create_time
+        latest.version = self.version + 1
+        data = json.loads(latest.data)
+        data['meta']['versionID'] = latest.version
+        latest.data = json.dumps(data, separators=(',', ':'))
+        return latest
+
+    def delete_policy(self, owner_id):
+        self.visible = False
+        latest = Resource(self.resource_type, json.loads(self.data), owner_id, self.resource_id)
+        latest.create_time = self.create_time
+        latest.version = self.version + 1
+        data = json.loads(latest.data)
+        data['meta']['versionID'] = latest.version
+        latest.data = json.dumps(data, separators=(',', ':'))
         return latest
 
     def as_response(self, request, created=False):

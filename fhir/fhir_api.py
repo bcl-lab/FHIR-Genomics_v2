@@ -19,6 +19,7 @@ from lxml import etree
 PAGE_SIZE = 50
 BUNDLE_TITLE = 'SMART Genomics Atom Feed' 
 
+
 def find_latest_resource(resource_type, resource_id, owner_id):
     '''
     Find the latest resource given it's type, id, and id of it's owner.
@@ -300,3 +301,42 @@ def handle_history(request, resource_type, resource_id, version):
     resp_bundle = FHIRBundle(hist_query, request, version_specific=True)
 
     return resp_bundle.as_response()
+
+
+def handle_add_policy(request, resource_type, resource_id):
+    resource = find_latest_resource(resource_type, resource_id, owner_id=request.authorizer.email)
+    if resource is None:
+        return fhir_error.inform_not_allowed()
+
+    correctible = (request.format == 'xml')
+    valid, search_elements = fhir_parser.parse_resource(
+        resource_type, json.loads(resource.data), correctible)
+    if not valid:
+        return fhir_error.inform_bad_request()
+
+    if is_policy(request.data):
+        resource = resource.add_policy(request.data, request.authorizer.email)
+        index_resource(resource, search_elements)
+        return resource.as_response(request)
+
+    else:
+        return fhir_error.inform_bad_request()
+
+
+def is_policy(policy):
+    return True
+
+
+def handle_delete_policy(request, resource_type, resource_id):
+    resource = find_latest_resource(resource_type, resource_id, owner_id=request.authorizer.email)
+    if resource is None:
+        return fhir_error.inform_not_allowed()
+
+    valid, search_elements = fhir_parser.parse_resource(
+        resource_type, json.loads(resource.data))
+    if not valid:
+        return fhir_error.inform_bad_request()
+
+    resource = resource.delete_policy(request.authorizer.email)
+    index_resource(resource, search_elements)
+    return resource.as_response(request)

@@ -11,13 +11,8 @@ from functools import partial, wraps
 from datetime import datetime
 import re
 import ga4gh
-import basespace
-
-
 
 api = Blueprint('api', __name__)
-
-
 AUTH_HEADER_RE = re.compile(r'Bearer (?P<access_token>.+)')
 
 
@@ -113,7 +108,7 @@ def handle_resource(resource_type):
         return fhir_api.handle_create(fhir_request, resource_type)
 
 
-@api.route('/<resource_type>/<resource_id>', methods=['GET', 'PUT', 'DELETE'])
+@api.route('/<resource_type>/<resource_id>', methods=['GET', 'PUT', 'DELETE', 'POST'])
 @protected
 def handle_resources(resource_type, resource_id):
     if resource_type in ['callsets', 'variantsets', 'readgroupsets', 'referencesets', 'variant']:
@@ -130,12 +125,35 @@ def handle_resources(resource_type, resource_id):
         return fhir_api.handle_read(fhir_request,
                                     resource_type,
                                     resource_id)
-    elif request.method == 'PUT':
+    elif request.method == 'PUT' or request.method == 'POST':
         return fhir_api.handle_update(fhir_request,
                                       resource_type,
                                       resource_id)
     else:
         return fhir_api.handle_delete(fhir_request,
+                                      resource_type,
+                                      resource_id)
+
+
+@api.route('/<resource_type>/<resource_id>/policy', methods=['GET', 'PUT', 'DELETE', 'POST'])
+@protected
+def handle_resources_policy(resource_type, resource_id):
+    if resource_type not in RESOURCES:
+        return fhir_error.inform_not_found()
+
+    request.api_base = util.get_api_base()
+    fhir_request = fhir_api.FHIRRequest(request, is_resource=False)
+
+    if request.method == 'GET':
+        return fhir_api.handle_read(fhir_request,
+                                    resource_type,
+                                    resource_id)
+    elif request.method == 'PUT' or request.method == 'POST':
+        return fhir_api.handle_add_policy(fhir_request,
+                                      resource_type,
+                                      resource_id)
+    else:
+        return fhir_api.handle_delete_policy(fhir_request,
                                       resource_type,
                                       resource_id)
 
@@ -153,6 +171,7 @@ def read_history(resource_type, resource_id, version):
     fhir_request = fhir_api.FHIRRequest(request)
     return fhir_api.handle_history(fhir_request, resource_type, resource_id, version)
 
+
 @api.before_request
 def init_globals():
     '''
@@ -164,6 +183,7 @@ def init_globals():
     and after every request, we "commit" those buffers.
     '''
     g._nodep_buffers = {}
+
 
 @api.after_request
 def cleanup(resp):
