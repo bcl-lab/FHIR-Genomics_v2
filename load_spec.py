@@ -63,7 +63,7 @@ def find_complex_extension_attri(filename, base_name):
                 names.append(name)
                 search_names.append(base_name+'-'+name)
                 types.append(type)
-        print types
+        #print types
         return names, search_names, types
 
 
@@ -74,7 +74,7 @@ def process_profile(profile):
     '''
     ori_elements = profile['snapshot']['element']
 
-    # `refeence_types` maintains the mapping
+    # `reference_types` maintains the mapping
     # between a search parameter of type ResourceReference and possible resource types
     reference_types = {}
     elements = []
@@ -243,7 +243,7 @@ def load_spec(spec_dir):
             for item in resource_reference_types:
                 if item == 'name':
                     continue
-                print resource_reference_types, item
+                #print resource_reference_types, item
                 if 'Observation' in resource_reference_types[item]:
                     resource_reference_types[item] += ['observationforgenetics', 'consensus-sequence-block']
                 if 'DiagnosticReport' in resource_reference_types[item]:

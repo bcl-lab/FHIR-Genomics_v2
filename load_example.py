@@ -2,18 +2,14 @@ __author__ = 'HemingY'
 '''
 Load randomly generated example data into the database
 '''
-from flask import g
-from fhir.models import db, Resource, User, Client, commit_buffers
+from fhir.models import db, Resource, User, commit_buffers
 from fhir.indexer import index_resource
 from fhir.fhir_parser import parse_resource
-from fhir.fhir_spec import RESOURCES
 import names
-from argparse import ArgumentParser
 import random
 from functools import partial
 import json
 import os
-import fhir.ga4gh
 from vcf import VCFReader
 
 BASEDIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'fhir')
@@ -63,7 +59,8 @@ def rand_patient():
 
 def rand_observations(patientId, index):
     gene_name = gene_names[index]
-    f = file (BASEDIR + '/examples/loinc-code.txt')
+    variant_id = variant_ids[index]
+    f = file(BASEDIR + '/examples/loinc-code.txt')
     code, text = None, None
     for line in f.readlines():
         line = line.split('\t')
@@ -116,7 +113,7 @@ def rand_observations(patientId, index):
     extension = []
     # get source randomly
     if random.random() < 0.5:
-        source = {'url': PRE_EXTENSION_OBS_URL+'Source',
+        source = {'url': PRE_EXTENSION_OBS_URL+'GenomicSourceClass',
                   'valueCodeableConcept': {'text': 'Somatic',
                                            'coding': [{
                                                       'system': "http://hl7.org/fhir/LOINC-48002-0-answerlist",
@@ -131,6 +128,13 @@ def rand_observations(patientId, index):
                                                       'code': "LA6683-2"
                                                       }]}}
     extension.append(source)
+    # get variant_id
+    if variant_id:
+        variant = {'url': PRE_EXTENSION_OBS_URL+'DNAVariationId',
+                   'valueCodeableConcept': {'coding': [{'system': 'http://www.ncbi.nlm.nih.gov/projects/SNP/snp_ref.cgi',
+                                                        'code': variant_id}]
+                                            }}
+        extension.append(variant)
 
     # get gene name
     if gene_name:
@@ -144,7 +148,7 @@ def rand_observations(patientId, index):
         if gene_id:
             gene = {'url': PRE_EXTENSION_OBS_URL+'Gene',
                     'valueCodeableConcept': {'text': gene_name,
-                                             'coding':[{
+                                             'coding': [{
                                                         'system': 'http://www.genenames.org/',
                                                         'code': gene_id
                                                         }]}}
@@ -171,69 +175,59 @@ def load_vcf_example(vcf_file):
         serial += 1
         if serial % 1000 != 0:
             continue
+
         sequence_tmpl = {
             'text': {'status': 'generated'},
             'resourceType': 'Sequence',
             'type': 'DNA',
-            'coordinate': [
-                {
-                'chromosome': {'text': record.CHROM},
-                'start': record.POS,
-                'end': record.end,
-                'genomeBuild': {'text': 'GRCh37'}
-            }],
+            'referenceSeq': [
+                {'chromosome': {'text': record.CHROM,
+                                'coding': [{'system': 'http://hl7.org/fhir/ValueSet/chromosome-human',
+                                            'code': record.CHROM}]},
+                 'genomeBuild': {'text': 'GRCh37'},
+                 'referenceSeqId': {'coding': [{'system': 'http://www.ensembl.org',
+                                                'code': record.INFO.get('SNPEFF_TRANSCRIPT_ID')}]},
+                 'windowStart': record.POS,
+                 'windowEnd': int(record.end)+1
+                 }],
+
+            'variation': {'start': record.POS,
+                          'end': int(record.end)+1,
+                          'observedAllele': str(record.ALT[0]),
+                          'referenceAllele': record.REF
+                          },
 
             'species': {'text': 'Homo sapiens',
                         'coding': [{
                             'system': 'http://snomed.info/sct',
-                            'code': '337915000'}]},
-            'referenceAllele': record.REF
+                            'code': '337915000'}]}
         }
 
         seq_data = dict(sequence_tmpl)
 
-        for sample in record.samples:
-            sample_id = sample.sample
-            reads = sample.gt_bases
-            if '/' in reads:
-                delimiter = '/'
-            elif '|' in reads:
-                delimiter = '|'
-            else:
-                delimiter = '.'
-            seq_data = dict(sequence_tmpl)
-            seq_data['observedAllele'] = reads.split(delimiter)[1]
+        variant_id = record.ID
+        variant_ids.append(variant_id)
+        variant = variant_id if variant_id is not None else 'anonymous variant'
 
-            # get name of the variant
-            variant_id = record.ID
-            variant = variant_id if variant_id is not None else 'anonymous variant'
+        seq_data['text']['div']  = '<div>Genotype of %s is %s/%s</div>'% (variant, record.REF, str(record.ALT[0]))
 
-            seq_data['variationID'] = [{
-                                       'coding': [{
-                                                   'system': 'http://www.ncbi.nlm.nih.gov/projects/SNP/snp_ref.cgi',
-                                                   'code': variant_id
-                                                   }]}]
-
-            seq_data['text']['div']  = '<div>Genotype of %s is %s</div>'% (variant, reads)
-
-            gene_name = record.INFO.get('SNPEFF_GENE_NAME')
-
-            sequence = save_resource('Sequence', seq_data)
-            print 'Created Sequence at %s:%s-%s'% (record.CHROM, record.POS, record.end)
-            count += 1
-            sequence_ids.append(sequence.get_reference())
-            gene_names.append(gene_name)
+        gene_name = record.INFO.get('SNPEFF_GENE_NAME')
+        gene_names.append(gene_name)
+        sequence = save_resource('Sequence', seq_data)
+        print 'Created Sequence at %s:%s-%s'% (record.CHROM, record.POS, record.end)
+        count += 1
+        sequence_ids.append(sequence.get_reference())
         if MAX_SEQ_PER_FILE is not None and count >= MAX_SEQ_PER_FILE:
             break
 
 
-def create_diagnosticreport(patientId):
-    conditionId = rand_conditions(patientId)
-    print conditionId
-    performerId = rand_practitioner(patientId)
+def create_diagnosticreport(patient_id):
+    condition_id = rand_conditions(patient_id)
+    print condition_id
+    performer_id = rand_practitioner(patient_id)
     extension = []
     assessed_condition = {'url': PRE_EXTENSION_REPORT_URL + 'AssessedCondition',
-                          'valueReference': conditionId}
+                          'valueReference': condition_id}
     extension.append(assessed_condition)
 
     results = []
@@ -242,37 +236,37 @@ def create_diagnosticreport(patientId):
         index = random.randint(0,len(sequence_ids)-1)
         if random.randint(0,len(sequence_ids)-1) not in sequence_index:
             sequence_index.append(index)
-            results.append(rand_observations(patientId, index).get_reference())
+            results.append(rand_observations(patient_id, index).get_reference())
 
     data = {
         'resourceType': 'reportforgenetics',
         'extension': extension,
         'status': 'final',
         'code': {'text': 'Gene mutation analysis'},
-        'subject': patientId,
+        'subject': patient_id,
         'effectiveDateTime': rand_date(),
         'issued': rand_date(),
-        'performer': performerId,
+        'performer': performer_id,
         'result': results
         }
 
     return save_resource('reportforgenetics', data)
 
 
-def rand_practitioner(patientId):
+def rand_practitioner(patient_id):
     '''
     randomly assign a set of conditions to a poor patient
     '''
     practitioner = random.sample(available_practitioner, 1)
-    practitionerId = 0
+    practitioner_id = 0
     for cond_tmpl in practitioner:
         practitioner = dict(cond_tmpl)
-        practitioner['subject'] = patientId
+        practitioner['subject'] = patient_id
         practitioner = save_resource('Practitioner', practitioner)
-        practitionerId = practitioner.get_reference()
+        practitioner_id = practitioner.get_reference()
         print 'Created practitioner'
         break
-    return practitionerId
+    return practitioner_id
 
 
 def init_practitioner():
@@ -293,20 +287,20 @@ def load_practitioner_from_file(path, relevant_dir):
         return json.loads(f.read())
 
 
-def rand_conditions(patientid):
+def rand_conditions(patient_id):
     '''
     randomly assign a set of conditions to a poor patient
     '''
     conditions = random.sample(available_conditions,
                             random.randint(1, len(available_conditions)))
-    conditionid = 0
+    condition_id = 0
     for cond_tmpl in conditions:
         condition = dict(cond_tmpl)
-        condition['patient'] = patientid
-        conditionid = save_resource('Condition', condition).get_reference()
+        condition['patient'] = patient_id
+        condition_id = save_resource('Condition', condition).get_reference()
         print 'Created condition %s'% condition['code'].get('text', '')
         break
-    return conditionid
+    return condition_id
 
 
 def load_condition_from_file(path):
@@ -371,6 +365,7 @@ if __name__ == '__main__':
         patient_ids = []
         sequence_ids = []
         gene_names = []
+        variant_ids = []
 
         for example_file in os.listdir(os.path.join(BASEDIR, 'examples/vcf')):
             load_vcf_example(os.path.join(BASEDIR, 'examples/vcf', example_file))

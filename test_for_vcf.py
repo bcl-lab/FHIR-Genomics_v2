@@ -8,19 +8,30 @@ def load_vcf_example(vcf_file):
         sequence_tmpl = {
             'text': {'status': 'generated'},
             'resourceType': 'Sequence',
-            'coordinate': {
-                'chromosome': {'text': record.CHROM,
-                'start': record.POS,
-                'end': record.end,
-                'genomeBuild': {'text': 'GRCh37'}
-            },
-            'source': 'germline' if random.random() < 0.5 else 'somatic',
+            'type': 'DNA',
+            'referenceSeq': [
+                {'chromosome': {'text': record.CHROM,
+                                'coding': [{'system': 'http://hl7.org/fhir/ValueSet/chromosome-human',
+                                            'code': record.CHROM}]},
+                 'genomeBuild': {'text': 'GRCh37'},
+                 'referenceSeqId': {'coding': [{'system': 'http://www.ensembl.org',
+                                                'code': record.INFO.get('SNPEFF_TRANSCRIPT_ID')}]},
+                 'windowStart': record.POS,
+                 'windowEnd': record.end
+                 }],
+
+            'variation': {'start': record.POS,
+                          'end': record.end,
+                          'observedAllele': str(record.ALT[0]),
+                          'referenceAllele': record.REF
+                          },
+
             'species': {'text': 'Homo sapiens',
                         'coding': [{
                             'system': 'http://snomed.info/sct',
-                            'code': '337915000'}]},
-            'referenceAllele': record.REF
+                            'code': '337915000'}]}
         }
+
         for sample in record.samples:
             sample_id = sample.sample
             reads = sample.gt_bases
