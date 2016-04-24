@@ -9,10 +9,10 @@
 	{% for _link in link %}
 	<link>
         <relation>
-            {{ _link.relation }}
+            {{ _link.rel }}
         </relation>
         <url>
-            {{ _link.url }}
+            {{ _link.href }}
         </url>
     </link>
 	{% endfor %}

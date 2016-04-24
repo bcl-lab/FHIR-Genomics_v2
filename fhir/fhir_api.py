@@ -154,7 +154,7 @@ class FHIRBundle(object):
 
         bundle['entry'] = entries
 
-        links = [{'relation': 'self', 'url': self.request_url}]
+        links = [{'rel': 'self', 'href': self.request_url}]
         if self.next_url is not None:
             links.append({
                 'rel': 'next',

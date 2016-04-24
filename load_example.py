@@ -13,7 +13,7 @@ import os
 from vcf import VCFReader
 
 BASEDIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'fhir')
-MAX_SEQ_PER_FILE = 10
+MAX_SEQ_PER_FILE = 110
 PRE_EXTENSION_OBS_URL = 'http://hl7.org/fhir/StructureDefinition/observation-genetics'
 PRE_EXTENSION_REPORT_URL = 'http://hl7.org/fhir/StructureDefinition/diagnosticreport-genetics'
 
