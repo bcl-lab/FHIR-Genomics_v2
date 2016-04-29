@@ -121,7 +121,7 @@ def rand_observations(patientId, index):
                                                       }]}}
 
     else:
-        source = {'url': PRE_EXTENSION_OBS_URL+'Source',
+        source = {'url': PRE_EXTENSION_OBS_URL+'GenomicSourceClass',
                   'valueCodeableConcept': {'text': 'Germline',
                                            'coding': [{
                                                       'system': "http://hl7.org/fhir/LOINC-48002-0-answerlist",
