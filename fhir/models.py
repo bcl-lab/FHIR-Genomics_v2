@@ -170,6 +170,8 @@ class Resource(db.Model, SimpleInsert):
 
         if request.format == 'json':
             response = json_response(status=status)
+            data = json.loads(self.data)
+            self.data = json.dumps(data, indent=4, sort_keys=True)
             response.data = self.data
         else:
             response = xml_response(status=status)

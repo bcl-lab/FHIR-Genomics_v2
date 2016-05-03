@@ -1,10 +1,9 @@
-from flask import Response, render_template, g
+from flask import render_template, g
 from database import db
-from models import Resource, SearchParam
+from models import Resource
 import fhir_parser
 import fhir_error
 from util import json_response, xml_response, xml_bundle_response, xml_to_json, json_to_xml, get_api_base
-from fhir_spec import SPECS, REFERENCE_TYPES
 from query_builder import QueryBuilder
 from indexer import index_resource
 import ttam
@@ -182,7 +181,7 @@ class FHIRBundle(object):
 
         if self.data_format == 'json':
             response = json_response()
-            response.data = json.dumps(bundle_dict)
+            response.data = json.dumps(bundle_dict, indent=4, sort_keys=True)
         else:
             response = xml_bundle_response()
             response.data = render_template('bundle.xml', **bundle_dict)

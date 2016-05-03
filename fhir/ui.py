@@ -23,6 +23,7 @@ UNAUTHORIZED = Response(status='403')
 NOT_FOUND = Response(status='404')
 BAD_REQUEST = Response(status='400')
 
+
 def log_in(user):
     '''
     create a new session for a user
@@ -103,7 +104,7 @@ def require_login(view):
     @wraps(view)
     def logged_in_view(*args, **kwargs):
         # check if user is logged in
-        if  (request.session is None or
+        if (request.session is None or
             request.session.user is None):
             if request.method != 'GET':
                 return UNAUTHORIZED
