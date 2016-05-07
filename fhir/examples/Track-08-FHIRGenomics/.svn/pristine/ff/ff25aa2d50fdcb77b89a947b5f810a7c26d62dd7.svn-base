@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FamilyMemberHistory>
+	<id value="familymemberhistory-f1-genetics"/>
+	<text>
+		<status value="generated"/>
+		<div xmlns="http://www.w3.org/1999/xhtml">Recording Genetic Observations of a patient's mother</div>
+	</text>
+	<extension url="http://hl7.org/fhir/StructureDefinition/family-member-history-genetics-observation">
+		<valueReference>
+			<reference value="Observation/dgf1"/>
+		</valueReference>
+	</extension>
+	<patient>
+		<reference value="Patient/example"/>
+	</patient>
+	<status value="completed"/>
+	<relationship>
+		<coding>
+			<system value="http://hl7.org/fhir/familial-relationship"/>
+			<code value="MTH"/>
+			<display value="Mother"/>
+		</coding>
+	</relationship>
+</FamilyMemberHistory>

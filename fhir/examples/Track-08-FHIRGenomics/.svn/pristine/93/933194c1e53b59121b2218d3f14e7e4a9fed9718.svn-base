@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TestScript xmlns="http://hl7.org/fhir">
+	<id value="connectathon-12-track-08-02-germline-testing-xml"/>
+
+	<url value="http://wildfhir.aegis.net/fhir/TestScript/connectathon-12-track-08-02-germline-testing-xml"/>
+	<name value="FHIR Connectathon 12 - Track 08 - FHIR Genomics - Scenario 02 - Germline Testing - XML"/>
+	<status value="draft"/>
+	<publisher value="Clinical Genomics Workgroup, AEGIS.net, Inc."/>
+	<contact>
+		<name value="Gil Alterovitz"/>
+		<telecom>
+			<system value="email"/>
+			<value value="gilusa@gmail.com"/>
+			<use value="work"/>
+		</telecom>
+	</contact>
+	<contact>
+		<name value="Touchstone Support"/>
+		<telecom>
+			<system value="email"/>
+			<value value="Touchstone_Support@aegis.net"/>
+			<use value="work"/>
+		</telecom>
+	</contact>
+	<date value="2016-05-02"/>
+	<description value="Search for a genetic-profile-based Observation containing the Genomic Source Class extension with the germline value and using a known Patient resource id reference. Resource format is XML."/>
+	<useContext>
+		<coding>
+			<system value="urn:iso:std:iso:3166"/>
+			<code value="US"/>
+			<display value="United States of America (the)"/>
+		</coding>
+	</useContext>
+	<requirements value="Observation Search Operation"/>
+	<copyright value="© Clinical Genomics Workgroup, © AEGIS.net, Inc. 2015+"/>
+
+	<metadata>
+		<capability>
+			<required value="true"/>
+			<description value="Observation search operation with patient search parameter"/>
+			<link value="http://hl7.org/fhir/http.html#search"/>
+			<link value="http://hl7.org/fhir/2016May/observationforgenetics.html"/>
+			<conformance>
+				<reference value="_reference/conformance/ObservationSearchType.xml" />
+			</conformance>
+		</capability>
+	</metadata>	
+
+	<profile id="observation-profile">
+		<reference value="http://hl7.org/fhir/StructureDefinition/Observation"/>
+	</profile>
+	<profile id="observation-genetics-profile">
+		<reference value="http://hl7.org/fhir/StructureDefinition/observationforgenetics"/>
+	</profile>
+
+	<variable>
+		<name value="patientResourceId"/>
+		<defaultValue value="[Resource Id Goes Here]"/>
+	</variable>
+
+	<rule id="RuleGermlineObservationInSearchResponse">
+		<resource>
+			<reference value="_reference/rule/response/body/RuleGermlineObservationInSearchResponse.groovy"/>
+		</resource>
+	</rule>		
+
+	<!-- No Setup -->
+
+	<test id="Test-01-GermlineTestingSearch">
+		<name value="Test-01-GermlineTestingSearch"/>
+		<description value="Search for all Observations for a given Patient. Examine search results for germline Observation(s)."/>
+
+		<action>
+			<operation>
+				<type>
+					<system value="http://hl7.org/fhir/testscript-operation-codes"/>
+					<code value="search"/>
+				</type>
+				<resource value="Observation"/>
+				<description value="Search for patient observations using a known patient resource id reference"/>
+				<accept value="xml"/>
+				<contentType value="xml"/>
+				<params value="?patient=Patient/${patientResourceId}"/>
+			</operation>
+		</action>
+		<action>
+			<assert>
+				<description value="Confirm that the returned HTTP status is 200(OK)."/>
+				<response value="okay"/>
+			</assert>
+		</action>
+		<action>
+			<assert>
+				<description value="Confirm that the returned format is XML."/>
+				<contentType value="xml"/>
+			</assert>
+		</action>
+		<action>
+			<assert>
+				<description value="Confirm that the returned resource type is Bundle."/>
+				<resource value="Bundle"/>
+			</assert>
+		</action>
+		<action>
+			<assert>
+				<description value="Confirm that there is at least one observation record returned."/>
+				<operator value="greaterThan"/>
+				<path value="/Bundle/total"/>
+				<value value="0"/>
+			</assert>
+		</action>
+		<action>
+			<assert>
+				<description value="Complex rule assertion to evaluate Bundle searchset and determine if at least one expected germline Observation is returned."/>
+				<rule>
+					<ruleId value="RuleGermlineObservationInSearchResponse" />
+				</rule>
+			</assert>
+		</action>
+	</test>
+</TestScript>

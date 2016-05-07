@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TestScript xmlns="http://hl7.org/fhir">
+	<id value="connectathon-12-track-08-04-data-warehouse-xml"/>
+
+	<url value="http://wildfhir.aegis.net/fhir/TestScript/connectathon-12-track-08-04-data-warehouse-xml"/>
+	<name value="FHIR Connectathon 12 - Track 08 - FHIR Genomics - Scenario 04 - Clinical and Research Data Warehouses - XML"/>
+	<status value="draft"/>
+	<publisher value="Clinical Genomics Workgroup, AEGIS.net, Inc."/>
+	<contact>
+		<name value="Gil Alterovitz"/>
+		<telecom>
+			<system value="email"/>
+			<value value="gilusa@gmail.com"/>
+			<use value="work"/>
+		</telecom>
+	</contact>
+	<contact>
+		<name value="Touchstone Support"/>
+		<telecom>
+			<system value="email"/>
+			<value value="Touchstone_Support@aegis.net"/>
+			<use value="work"/>
+		</telecom>
+	</contact>
+	<date value="2016-05-02"/>
+	<description value="Search for all genetic-profile-based observations with a given observation-geneticsDNAVariationId extension equal to rs587778247. Resource format is XML."/>
+	<useContext>
+		<coding>
+			<system value="urn:iso:std:iso:3166"/>
+			<code value="US"/>
+			<display value="United States of America (the)"/>
+		</coding>
+	</useContext>
+	<requirements value="Observation Search Operation"/>
+	<copyright value="© Clinical Genomics Workgroup, © AEGIS.net, Inc. 2015+"/>
+
+	<metadata>
+		<capability>
+			<required value="true"/>
+			<description value="Observation search operation with patient search parameter"/>
+			<link value="http://hl7.org/fhir/http.html#search"/>
+			<link value="http://hl7.org/fhir/2016May/extension-observation-geneticsdnavariationid.html"/>
+			<conformance>
+				<reference value="_reference/conformance/ObservationSearchType.xml" />
+			</conformance>
+		</capability>
+	</metadata>	
+
+	<profile id="observation-profile">
+		<reference value="http://hl7.org/fhir/StructureDefinition/Observation"/>
+	</profile>
+	<profile id="observation-genetics-profile">
+		<reference value="http://hl7.org/fhir/StructureDefinition/observationforgenetics"/>
+	</profile>
+
+	<variable>
+		<name value="patientResourceId"/>
+		<defaultValue value="[Resource Id Goes Here]"/>
+	</variable>
+
+	<rule id="RuleDNAVariationIdObservationInSearchResponse">
+		<resource>
+			<reference value="_reference/rule/response/body/RuleDNAVariationIdObservationInSearchResponse.groovy"/>
+		</resource>
+	</rule>		
+
+	<!-- No Setup -->
+
+	<test id="Test-01-DNAVariationIdObservationSearch">
+		<name value="Test-01-DNAVariationIdObservationSearch"/>
+		<description value="Search for all Observations for a given Patient. Examine search results for geneticsDNAVariationId extension equal to rs587778247."/>
+
+		<action>
+			<operation>
+				<type>
+					<system value="http://hl7.org/fhir/testscript-operation-codes"/>
+					<code value="search"/>
+				</type>
+				<resource value="Observation"/>
+				<description value="Search for patient observations using a known patient resource id reference"/>
+				<accept value="xml"/>
+				<contentType value="xml"/>
+				<params value="?patient=Patient/${patientResourceId}"/>
+			</operation>
+		</action>
+		<action>
+			<assert>
+				<description value="Confirm that the returned HTTP status is 200(OK)."/>
+				<response value="okay"/>
+			</assert>
+		</action>
+		<action>
+			<assert>
+				<description value="Confirm that the returned format is XML."/>
+				<contentType value="xml"/>
+			</assert>
+		</action>
+		<action>
+			<assert>
+				<description value="Confirm that the returned resource type is Bundle."/>
+				<resource value="Bundle"/>
+			</assert>
+		</action>
+		<action>
+			<assert>
+				<description value="Confirm that there is at least one observation record returned."/>
+				<operator value="greaterThan"/>
+				<path value="/Bundle/total"/>
+				<value value="0"/>
+			</assert>
+		</action>
+		<action>
+			<assert>
+				<description value="Complex rule assertion to evaluate Bundle searchset and determine if at least one Observation with expected geneticsDNAVariationId extension equal to rs587778247 is returned."/>
+				<rule>
+					<ruleId value="RuleDNAVariationIdObservationInSearchResponse" />
+				</rule>
+			</assert>
+		</action>
+	</test>
+</TestScript>

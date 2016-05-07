@@ -1,0 +1,69 @@
+{
+  "resourceType": "DiagnosticReport",
+  "text": {
+    "status": "generated",
+    "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\">Dec 06, 2014; Status: Final; Conclusion: Elevated Blood Lead levels; Diagnosis: Increased lead level</div>"
+  },
+  "identifier": [
+    {
+      "system": "http://happyvalley.com/diagnosticreport",
+      "value": "${CD7}${D9}"
+    }
+  ],
+  "status": "final",
+  "code": {
+    "coding": [
+      {
+        "system": "http://loinc.org",
+        "code": "5671-3",
+        "display": "Lead [Mass/volume] in Blood"
+      },
+      {
+        "system": "urn:oid:2.16.840.1.113883.3.72.5.24",
+        "code": "BLDLD",
+        "display": "Blood Lead"
+      }
+    ],
+    "text": "Blood Lead Report"
+  },
+  "subject": {
+    "reference": "Patient/patient-uslab-example1",
+    "display": "Todd Lerr"
+  },
+  "effectiveDateTime": "2014-12-05",
+  "issued": "2014-12-06T15:42:15-08:00",
+  "performer": {
+    "reference": "Practitioner/pract-uslab-example3",
+    "display": "Gregory F House, PhD"
+  },
+  "request": [
+    {
+      "reference": "DiagnosticOrder/do-uslab-example1",
+      "display": "USLan Example1"
+    }
+  ],
+  "specimen": [
+    {
+      "reference": "Specimen/spec-uslab-example1",
+      "display": "Blood Sample"
+    }
+  ],
+  "result": [
+    {
+      "reference": "Observation/obs-uslab-example5",
+      "display": "Blood Lead"
+    }
+  ],
+  "conclusion": "Elevated Blood Lead levels",
+  "codedDiagnosis": [
+    {
+      "coding": [
+        {
+          "system": "http://snomed.info/sct",
+          "code": "407151008",
+          "display": "Increased lead level"
+        }
+      ]
+    }
+  ]
+}

@@ -16,7 +16,7 @@
         </url>
     </link>
 	{% endfor %}
-	<total xmlns:os="http://a9.com/-/spec/opensearch/1.1/">{{ total }}</total>
+	<total value="1"/>
 
 	{% for _entry in entry %}
 	<entry>

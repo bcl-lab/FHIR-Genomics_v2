@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Sequence xmlns="http://hl7.org/fhir">
+	<type value="DNA"/>
+	<patient>
+		<reference value="Patient/example${CD15}"/>
+	</patient>
+	<species>
+		<coding>
+			<system value="http://snomed.info/sct"/>
+			<code value="337915000"/>
+		</coding>
+		<text value="Homo sapiens"/>
+	</species>
+	<referenceSeq>
+		<referenceSeqId>
+			<coding>
+				<system value="http://www.ncbi.nlm.nih.gov/nuccore"/>
+				<code value="NC_000007.14"/>
+			</coding>
+		</referenceSeqId>
+		<windowStart value="55227970"/>
+		<windowEnd value="55227980"/>
+	</referenceSeq>
+	<variation>
+		<start value="55227976"/>
+		<end value="55227977"/>
+		<observedAllele value="C"/>
+		<referenceAllele value="T"/>
+		<cigar value="${CD15}"/>
+	</variation>
+	<repository>
+		<url value="https://www.googleapis.com/genomics/v1beta2"/>
+		<name value="ga4gh"/>
+		<variantId value="A1A2"/>
+	</repository>
+</Sequence>
